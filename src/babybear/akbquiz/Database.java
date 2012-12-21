@@ -10,7 +10,6 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 import android.widget.Toast;
 
 public class Database {
@@ -83,14 +82,18 @@ public class Database {
 	private SQLiteDatabase db =null;
 	
 	//Hash a = null;
-	
+	/**
+	 * 
+	 * @param ctx Context
+	 * @param name 数据库名 
+	 */
 	public Database(Context ctx,String name){
 		context=ctx;
 		DBname=name;
 		
 	}
 	
-	public class DatabaseHelper extends SQLiteOpenHelper{
+	private class DatabaseHelper extends SQLiteOpenHelper{
 		public DatabaseHelper(Context context, String name,
 				CursorFactory factory, int version) {
 			super(context, name, factory, version);
@@ -131,20 +134,24 @@ public class Database {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			// TODO Auto-generated method stub
+			
 			
 		}
 		
 		@Override
 		public void onOpen(SQLiteDatabase db) {     
 	         super.onOpen(db);       
-	         // TODO 每次成功打开数据库后首先被执行     
+	              
 	     } 
 		
 	}
 	
-	public void addUser(String username){
-		if(!DBname.equals(DBName_cfg))return;
+	/**
+	 * 向数据库中添加一个用户
+	 * @param username 用户名
+	 */
+	public long addUser(String username){
+		if(!DBname.equals(DBName_cfg))return -1;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
 		db = dbh.getWritableDatabase();
 		
@@ -154,24 +161,51 @@ public class Database {
 		values.put(ColName_username, username );
 		values.put(ColName_createTime, t.getTime());
 		values.put(ColName_playlist, "android.resource://babybear.akbquiz/"+ R.raw.bg);
-		db.insert(TabName_user, null, values);
+		long n= db.insert(TabName_user, null, values);
 		Toast.makeText(context, "用户:'"+username+"'已建立",Toast.LENGTH_SHORT).show();
 		
 		db.close();
 		dbh.close();
+		return n;
 	}
 	
+	/**
+	 * 从数据库中删除一个用户 
+	 * @param _id 用户_id
+	 */
+	public void removeUser(int _id){
+		if(!DBname.equals(DBName_cfg))return;
+		dbh = new DatabaseHelper(context,DBname,null,ver);
+		db = dbh.getWritableDatabase();
+		
+		db.delete(TabName_user, "_id = "+_id, null);
+		
+		Toast.makeText(context, "用户_id:'"+_id+"'已删除",Toast.LENGTH_SHORT).show();
+		db.close();
+		dbh.close();
+	};
+	
+	/**
+	 * 从数据库中删除一个用户
+	 * @param username 用户名
+	 */
 	public void removeUser(String username){
 		if(!DBname.equals(DBName_cfg))return;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
 		db = dbh.getWritableDatabase();
 		
+		db.delete(TabName_user, ColName_username + " = " + username , null);
 		
 		Toast.makeText(context, "用户:'"+username+"'已删除",Toast.LENGTH_SHORT).show();
 		db.close();
 		dbh.close();
 	}
 	
+	/**
+	 * 更新用户信息
+	 * @param id 用户_id
+	 * @param values 要更改的键值对
+	 */
 	public void updateInfo(int id,ContentValues values){
 		if(!DBname.equals(DBName_cfg))return;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
@@ -183,21 +217,31 @@ public class Database {
 		dbh.close();
 	}
 	
-	
-	public void setCurrentUser(int userId){
-		if(!DBname.equals(DBName_cfg))return;
+	/**
+	 * 设置当前用户
+	 * @param userId 用户_id
+	 */
+	public boolean setCurrentUser(int userId){
+		if(!DBname.equals(DBName_cfg))return false;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
 		db = dbh.getWritableDatabase();
 		
+		
 		ContentValues values = new ContentValues();
 		values.put("extend", userId);
-		db.update(TabName_user, values, "_id=1", null);
+		int n = db.update(TabName_user, values, "_id=1", null);
 		
 		db.close();
 		dbh.close();
-		
+		if(n<1)return false;
+		return true;
 	}
 	
+	
+	/**
+	 * 自动获取当前用户的信息
+	 * @return 用户数据的键值对
+	 */
 	public ContentValues userCfgQuery(){
 		if(!DBname.equals(DBName_cfg))return null;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
@@ -226,6 +270,11 @@ public class Database {
 		dbh.close();
 		return 	cfgs;
 	}
+	
+	/**
+	 * 获取所有用户列表
+	 * @return 用户列表 包括int _id ，Sting username 和一个 Boolean isChoosed
+	 */
 	public ArrayList<ContentValues> userListQuery(){
 		if(!DBname.equals(DBName_cfg))return null;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
@@ -251,6 +300,12 @@ public class Database {
 		return userlist;
 	}
 	
+	/**
+	 * 完全随机的获取n个题目
+	 * @param n 题目数量
+	 * @return 题目内容
+	 */
+	
 	public ArrayList<ContentValues> QuizQuery(int n){
 		if(!DBname.equals(DBName_quiz))return null;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
@@ -274,19 +329,62 @@ public class Database {
 		return quizlist;
 	}
 	
-	
+	/**
+	 * 通过难度和团体获取 20个题目
+	 * @param difficulty 难度
+	 * @param group 相关的团
+	 * @return 题目内容
+	 */
 	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty , int group ){
 		return QuizQueryByGroup(group , GroupOrder_NULL , GroupOrder_NULL , GroupOrder_NULL , GroupOrder_NULL);
 	}
+	
+	/**
+	 * 通过难度和团体获取 20个题目
+	 * @param difficulty 难度
+	 * @param group1 相关的团1
+	 * @param group2 相关的团2
+	 * @return 题目内容
+	 */
 	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2){
 		return QuizQueryByGroup(group1 , group2 , GroupOrder_NULL , GroupOrder_NULL , GroupOrder_NULL);
 	}
+	
+	/**
+	 * 通过难度和团体获取 20个题目
+	 * @param difficulty 难度
+	 * @param group1 相关的团1
+	 * @param group2 相关的团2
+	 * @param group3 相关的团3
+	 * @return 题目内容
+	 */
 	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2 , int group3 ){
 		return QuizQueryByGroup(group1 , group2 , group3 , GroupOrder_NULL , GroupOrder_NULL);
 	}
+	
+	/**
+	 * 通过难度和团体获取 20个题目
+	 * @param difficulty 难度
+	 * @param group1 相关的团1
+	 * @param group2 相关的团2
+	 * @param group3 相关的团3
+	 * @param group4 相关的团4
+	 * @return
+	 */
 	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2 , int group3 , int group4){
 		return QuizQueryByGroup(group1 , group2 , group3 , group4 , GroupOrder_NULL);
 	}
+	
+	/**
+	 * 通过难度和团体获取 20个题目
+	 * @param difficulty 难度
+	 * @param group1 相关的团1
+	 * @param group2 相关的团2
+	 * @param group3 相关的团3
+	 * @param group4 相关的团4
+	 * @param group5 相关的团5
+	 * @return
+	 */
 	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2 , int group3 , int group4 , int group5){
 		
 		if(!DBname.equals(DBName_quiz))return null;
@@ -344,8 +442,14 @@ public class Database {
 		dbh.close();
 		return quizlist;
 	}
-
-public ArrayList<ContentValues> QuizQueryByGroup(int difficulty , String[] groups){
+	
+	/**
+	 * 通过难度和团体获取 20个题目
+	 * @param difficulty 难度
+	 * @param groups 相关的团
+	 * @return 题目内容
+	 */
+	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty , String[] groups){
 		
 		if(!DBname.equals(DBName_quiz))return null;
 		dbh = new DatabaseHelper(context,DBname,null,ver);

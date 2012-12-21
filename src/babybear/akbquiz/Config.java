@@ -21,7 +21,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CursorAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -397,66 +396,7 @@ public class Config extends Activity{
         }
 		
 	}
-//	
-//	class MusiclistAdapter extends CursorAdapter{
-//		LayoutInflater inflater;
-//		OnClickListener musicList_oCL;
-//		public MusiclistAdapter(Context context, Cursor c) {
-//			super(context, c);
-//			inflater = LayoutInflater.from(context);
-//			musicList_oCL = new OnClickListener(){
-//
-//				@Override
-//				public void onClick(View arg0) {
-//					int position = Integer.parseInt((String) arg0.getTag());
-//					Log.d("", "set "+ onModifing +" in Playlist with "+position+" in Musiclist");
-//					musics.moveToPosition(position);
-//					Music temp=new Music();
-//					temp._ID=musics.getInt(musics.getColumnIndex(MediaStore.Audio.Media._ID));
-//					temp.ALBUM=musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-//					temp.ARTIST=musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-//					temp.DATA=musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.DATA));
-//					temp.TITLE=musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.TITLE));
-//					temp.DURATION=musics.getLong(musics.getColumnIndex(MediaStore.Audio.Media.DURATION));
-//					
-//					playlist.set(onModifing, temp);
-//					Log.d("",playlist.get(onModifing).TITLE);
-//					//playlistAdapter.;
-//					PlaylistAdapter adapter=(PlaylistAdapter)playlistView.getAdapter();
-//					adapter.remove(adapter.getItem(onModifing));
-//					adapter.insert(temp, onModifing);
-//					encodePlaylist();
-//					
-//					isPlaylistChanged=true;
-//					cfgflipper.showPrevious();
-//				}
-//				
-//			};
-//		}
-//
-//		@Override
-//		public void bindView(View view, Context arg1, Cursor cur) {
-//			view.findViewById(R.id.no).setVisibility(View.GONE);
-//            ((TextView)view.findViewById(R.id.album)).setText(cur.getString(cur.getColumnIndex(MediaStore.Audio.Media.ALBUM)));
-//            ((TextView)view.findViewById(R.id.artist)).setText(cur.getString(cur.getColumnIndex(MediaStore.Audio.Media.ARTIST)));
-//            ((TextView)view.findViewById(R.id.title)).setText(cur.getString(cur.getColumnIndex(MediaStore.Audio.Media.TITLE)));
-//            long duration = cur.getLong(cur.getColumnIndex(MediaStore.Audio.Media.DURATION));
-//            ((TextView)view.findViewById(R.id.length)).setText(duration/60000+":"+(duration/1000)%60);
-//            //Log.d("","on bindView()");
-//		}
-//
-//		@Override
-//		public View newView(Context context, Cursor cursor, ViewGroup parent) {
-//			//Log.d("","on newView()");
-//			View v=inflater.inflate(R.layout.playlist_item, null);
-//			v.setFocusable(true);
-//			v.setClickable(true);
-//			v.setTag(""+cursor.getPosition());
-//			v.setOnClickListener(musicList_oCL);
-//			return v;
-//		}
-//		
-//	}
+	
 	class Music{
 		int _ID;
 		long DURATION;

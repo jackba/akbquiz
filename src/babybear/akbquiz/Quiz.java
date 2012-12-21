@@ -12,7 +12,6 @@ import android.app.Service;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;

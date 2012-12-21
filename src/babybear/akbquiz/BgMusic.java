@@ -158,13 +158,14 @@ public class BgMusic extends Service{
     	public static final int VOL_CHANGE=1 , SWITCH_CHANGE=2 , LOOP_CHANGE=3 , PLAYLIST_CHANGE=4 ,PAUSE =-1 ,PLAY=0; 
     	
 	    public BGHandler() {
+	    	
 	    }
 	
 	    public BGHandler(Looper L) {
 	        super(L);
 	    }
 	
-	    //
+	    
 	    @Override
 	    public void handleMessage(Message msg) {
 	        
