@@ -1,0 +1,49 @@
+<resources>
+
+    <string name="app_name">AKBquiz</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_welcome">Welcome</string>
+    <string name="Programming">程序</string>
+    <string name="Artists">美工</string>
+    <string name="Quizer">题目</string>
+    <string name="Producer">制作人</string>
+    <string name="name_BabyBeaR">BabyBeaR</string>
+    <string name="name_Saeyuki">因Saeyuki而生</string>
+    <string name="Warning">警告</string>
+    <string name="Warning_text">此游戏（应用）为独立开发，具有自主知识产权，任何人不得对其进行反编译等行为，不得将之用于包括但不仅限于广告投放等的商业或盈利用途。本游戏（应用）是开源项目，请遵从开源项目的共识：在开源项目基础上的任何开发都是开源的；不得利用开源项目盈利。繁花社持有本游戏（应用）的著作权，繁花社有权追究任何有侵权行为者的民事和刑事责任。</string>
+    <string name="Stuffs">工作人员</string>
+    <string name="Tester">测试人员</string>
+    <string name="level_1">等级1</string>
+    <string name="level_2">等级2</string>
+    <string name="level_3">等级3</string>
+    <string name="level_4">等级4</string>
+    
+    
+    <string name="config_bgm">背景音乐</string>
+    <string name="config_sound">音效</string>
+    <string name="config_switch">开关</string>
+    <string name="config_volume">音量</string>
+    <string name="config_recordclear">清除记录</string>
+    <string name="config_save">保存所有设置</string>
+    <string name="config_image_custom">自定义拼图图片</string>
+    <string name="config_bgm_custom">播放列表</string>
+    <string name="config_audio">音频设置</string>
+    <string name="config_choose_button">点击这里选择</string>
+    <string name="config_vibration">振动</string>
+    <string name="on">开</string>
+    <string name="off">关</string>
+    
+    <string name="Type_in_username">请输入您的用户名…</string>    
+    
+    <string name="menu_config">选项</string>
+	<string name="menu_start_game">开始游戏</string>
+    <string name="menu_record">记录</string>
+    <string name="menu_users">用户</string>
+    <string name="summary_title">数据</string>
+    <string name="summary_right">正确：</string>
+    <string name="summary_wrong">错误：</string>
+    <string name="summary_time">用时：</string>
+    <string name="summary_rate">正确率：</string>
+    <string name="summary_sum">答题：</string>
+
+</resources>
