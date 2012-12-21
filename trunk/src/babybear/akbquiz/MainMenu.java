@@ -7,13 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import babybear.akbquiz.Config.Music;
-
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,7 +26,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -59,7 +55,6 @@ public class MainMenu extends Activity {
 	static ViewFlipper menu_flipper = null;
 	
 	
-	
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_menu);
@@ -74,6 +69,7 @@ public class MainMenu extends Activity {
         menu_flipper = (ViewFlipper)findViewById(R.id.menu_flipper);
         userListView = (ListView)findViewById(R.id.listview_user);
         
+        
         userdata=db.userCfgQuery();
         if(userdata!=null){
         	username = userdata.getAsString(Database.ColName_username);
@@ -81,10 +77,9 @@ public class MainMenu extends Activity {
         	se.setSwitch(userdata.getAsBoolean(Database.ColName_switch_sound));
         	//Log.d("  ","userdata.getAsBoolean(ColName_switch_sound) = "+userdata.getAsInteger(Database.ColName_switch_sound));
         }
-        userList=db.userListQuery();
         
-        
-        
+        refreshUserlist();
+
         setStartChooser();
         
         OnClickListener l =new OnClickListener(){
@@ -103,7 +98,7 @@ public class MainMenu extends Activity {
 					showRecord();
 					break;
 				case R.id.users:
-					refreshUserlist();
+					
 					showUserList();
 					break;
 				case R.id.config:
@@ -117,21 +112,18 @@ public class MainMenu extends Activity {
 					intent_cfg.putExtra(Database.ColName_playlist,			userdata.getAsString(Database.ColName_playlist));
 					startActivityForResult(intent_cfg,REQUEST_CONFIG);
 					break;
+				case R.id.create_user:
+					createUser(true);
+					break;
 				}
 			}
 		};
         
-        Button b_start = (Button)findViewById(R.id.start);
-        b_start.setOnClickListener(l);
-        
-        Button b_record = (Button)findViewById(R.id.record);
-        b_record.setOnClickListener(l);
-        
-        Button b_users = (Button)findViewById(R.id.users);
-        b_users.setOnClickListener(l);        
-        
-        Button b_cfg = (Button)findViewById(R.id.config);
-        b_cfg.setOnClickListener(l);
+        ((Button)findViewById(R.id.start)).setOnClickListener(l);
+        ((Button)findViewById(R.id.record)).setOnClickListener(l);
+        ((Button)findViewById(R.id.users)).setOnClickListener(l);        
+        ((Button)findViewById(R.id.config)).setOnClickListener(l);
+        ((Button)findViewById(R.id.create_user)).setOnClickListener(l);
         
         Intent intentBgMusic = new Intent(this,BgMusic.class);
         
@@ -216,7 +208,7 @@ public class MainMenu extends Activity {
 		
 		Log.d("  ","userdata.getAsBoolean(ColName_switch_sound) = "+userdata.getAsBoolean(Database.ColName_switch_sound));
 	}
-	
+
 	public boolean onKeyDown(int keyCode, KeyEvent event){
 		switch(keyCode){
 		case KeyEvent.KEYCODE_BACK:
@@ -235,7 +227,9 @@ public class MainMenu extends Activity {
 		
 	}
 	
-	
+	/**
+	 * 配置难度选择器
+	 */
 	void setStartChooser(){
 		LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
         LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.chooser, null);
@@ -247,7 +241,7 @@ public class MainMenu extends Activity {
 			String key_Lv="lv";
 			@Override
 			public void onClick(View arg0) {
-				// TODO Auto-generated method stub
+				
 				switch(arg0.getId()){
 				case R.id.button_lv1:
 					intent.putExtra(key_Lv, 1);
@@ -285,7 +279,10 @@ public class MainMenu extends Activity {
         
 	}
 	
-	
+	/**
+	 * 弹出一个AlartDialog创建一个用户
+	 * @param isCancelable 是否可以取消
+	 */
 	void createUser(boolean isCancelable){
 		OnClickListener l_userCreater = new OnClickListener(){
 
@@ -304,8 +301,8 @@ public class MainMenu extends Activity {
 					//Log.d("USER CREATER","userList.getCount() : "+userList.size() );
 					if(userList!=null){
 						for(int i=0 ; i<userList.size() ; i++){
-							userin_lower = t_username.toLowerCase(); 
-							user_lower = userList.get(i).getAsString(Database.ColName_username).toLowerCase();
+							userin_lower = t_username.toLowerCase(Locale.getDefault()); 
+							user_lower = userList.get(i).getAsString(Database.ColName_username).toLowerCase(Locale.getDefault());
 							Log.d("USER CREATER", "userin_lower = "+ userin_lower +" &&   user_lower = "+ user_lower);
 							if(userin_lower.equals(user_lower)){
 								Toast.makeText(MainMenu.this, "已存在相同的用户名", Toast.LENGTH_SHORT).show();
@@ -315,12 +312,14 @@ public class MainMenu extends Activity {
 						
 					}
 					
-					db.addUser(t_username);
-					userList=db.userListQuery();
-					db.setCurrentUser(userList.get(userList.size()-1).getAsInteger(Database.ColName_id));
+					long id = db.addUser(t_username);
+					db.setCurrentUser((int)id);
 					userdata=db.userCfgQuery();
 					username=userdata.getAsString(Database.ColName_username);
 					TV_username.setText(username);
+					
+					refreshUserlist();
+					
 					se.setSwitch(userdata.getAsBoolean(Database.ColName_switch_sound));
 				}
 				userCreator.cancel();
@@ -350,11 +349,15 @@ public class MainMenu extends Activity {
     	if(!isCancelable)B_cancel.setVisibility(View.GONE);
     	userCreator.show();
 	}
-
+	
 	void showUserList(){
 		menu_flipper.showNext();
 	}
 	
+	
+	/**
+	 * 显示当前用户的游戏记录
+	 */
 	void showRecord(){
 		LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
     	LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.record, null);
@@ -397,10 +400,15 @@ public class MainMenu extends Activity {
     	 	.create().show();
 	}
 	
+	
+	/**
+	 * 刷新userlist并刷新显示
+	 */
     protected void refreshUserlist() {
-    	//empty;
-    	ContentValues object = new ContentValues();
-    	//userList.add(object);
+    	userList=db.userListQuery();
+    	for(int i=0;i<userList.size();i++){
+    		Log.d("refreshUserList", userList.get(i).getAsString(Database.ColName_username));
+    	}
     	for(int i=0 ; i<userList.size() ; i++){
 			if(userList.get(i).getAsString(Database.ColName_username).equals(username))
 				userList.get(i).put("isChoosed", true);
@@ -408,24 +416,25 @@ public class MainMenu extends Activity {
 				userList.get(i).put("isChoosed", false);
 		}
     	
-		userListAdapter = new UserlistAdapter(this, userList, listViewListener);
-		
-		
-		Log.d("U chooser", "userList.size() = "+userList.size());
-		
-		userListView = (ListView)findViewById(R.id.listview_user);
+		userListAdapter = new UserlistAdapter(this, userList);
 		userListView.setAdapter(userListAdapter);
+		
+    	userListAdapter.notifyDataSetChanged();
+    	
+		Log.d("U chooser", "userList.size() = "+userList.size());
 		
 		
 				
 	}
     
+    
+    /**
+     * 用户列表显示时用到的Adapter类
+     */
     class UserlistAdapter extends ArrayAdapter<ContentValues>{
-	    OnClickListener l;
 	    
-		public UserlistAdapter(Context context , List<ContentValues> objects ,OnClickListener listener) {
+		public UserlistAdapter(Context context , List<ContentValues> objects) {
 			super(context,0, objects);
-			l = listener;
 		}
 		
 		public View getView(int position, View convertView, ViewGroup parent){
@@ -436,14 +445,22 @@ public class MainMenu extends Activity {
 			
 			ContentValues values= getItem(position);
 			
-			if((TextView) v.findViewById(R.id.username) == null)Log.d("123", "v.findViewById(R.id.username) == null");
+			//if((TextView) v.findViewById(R.id.username) == null)Log.d("123", "v.findViewById(R.id.username) == null");
 			((TextView) v.findViewById(R.id.username)).setText(values.getAsString(Database.ColName_username));
 			if(values.getAsBoolean("isChoosed"))
-				((ImageView)v.findViewById(R.id.is_choosed)).setImageResource(R.drawable.ico_ok);
+				v.setBackgroundColor(0xffa0a0a0);
+			else
+				v.setBackgroundColor(0xff000000);
+			View del = v.findViewById(R.id.delete);
+			del.setTag(""+position);
+			del.setClickable(true);
+			del.setOnClickListener(deleteListener);
 			
+			
+			v.setTag(""+position);
 			v.setClickable(true);
 			v.setFocusable(true);
-			v.setOnClickListener(l);
+			v.setOnClickListener(listViewListener);
 			
 			Log.d("UserlistAdapter", "Is getting view in position : " + position);
 			Log.d("UserlistAdapter", "username : " + values.getAsString(Database.ColName_username));
@@ -456,16 +473,88 @@ public class MainMenu extends Activity {
 		
 	}
 	
+	
+	/**
+	 * 选择用户的操作
+	 */
 	OnClickListener listViewListener = new OnClickListener(){
 
 		@Override
 		public void onClick(View arg0) {
-			// TODO Auto-generated method stub
+			int pos=Integer.parseInt((String) arg0.getTag());
+			ContentValues tuser = userList.get(pos);
+			int _id = tuser.getAsInteger(Database.ColName_id);
 			
+			db.setCurrentUser(_id);
+			userdata=db.userCfgQuery();
+			username=userdata.getAsString(Database.ColName_username);
+			TV_username.setText(username);
+			refreshUserlist();
 		}
 		
 	};
 	
+	/**
+	 * 点选删除的操作
+	 */
+	OnClickListener deleteListener = new OnClickListener(){
+		int pos;
+		int _id;
+		boolean isCurrent=false;
+		
+		DialogInterface.OnClickListener l = new DialogInterface.OnClickListener(){
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				
+				switch(which){
+				case AlertDialog.BUTTON_POSITIVE:
+					if(isCurrent){
+						if(pos+1>=userList.size()){
+							if(pos-1<0){
+								Toast.makeText(MainMenu.this, "这是唯一的用户，不可删除", Toast.LENGTH_SHORT).show();
+								return;
+							}else{
+								pos--;
+							}
+						}else{
+							pos++;
+						}
+						db.setCurrentUser(userList.get(pos).getAsInteger(Database.ColName_id));
+					}
+					
+					db.removeUser(_id);
+					refreshUserlist();
+					break;
+				case AlertDialog.BUTTON_NEGATIVE:
+					break;
+				}
+			}
+			
+		};
+		
+		@Override
+		public void onClick(View arg0) {
+			pos=Integer.parseInt((String) arg0.getTag());
+			ContentValues tuser = userList.get(pos);
+			_id = tuser.getAsInteger(Database.ColName_id);
+			String username = tuser.getAsString(Database.ColName_username);
+			isCurrent=tuser.getAsBoolean("isChoosed");
+			AlertDialog.Builder confirm = new AlertDialog.Builder(MainMenu.this);
+			confirm.setTitle("确认删除");
+			confirm.setMessage("确定要删除用户“"+username+"”吗？");
+			confirm.setPositiveButton(android.R.string.ok,l);
+			confirm.setNegativeButton(android.R.string.cancel, l);
+			confirm.create().show();
+		}
+		
+		
+		
+	};
+	
+	/**
+	 * 首次运行
+	 */
 	void firstRun(){
     	AssetManager am = getAssets();
     	File fileout=new File(databasePath);
