@@ -210,7 +210,7 @@ public class Database {
 		if(!DBname.equals(DBName_cfg))return;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
 		db = dbh.getWritableDatabase();
-		
+		//values.getAsBoolean(key)
 		db.update(TabName_user, values, "_id="+id, null);
 		
 		db.close();
@@ -242,33 +242,34 @@ public class Database {
 	 * 自动获取当前用户的信息
 	 * @return 用户数据的键值对
 	 */
-	public ContentValues userCfgQuery(){
-		if(!DBname.equals(DBName_cfg))return null;
+	public int getCurrentUser(){
+		if(!DBname.equals(DBName_cfg))return 0;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
 		db = dbh.getWritableDatabase();
 		
 		Cursor defaultUser = db.query(TabName_user, new String[]{"extend"}, "_id=1", null, null, null, null);
 		defaultUser.moveToFirst();
 		int userid=defaultUser.getInt(0);
-		if (userid<1)return null;
-		Cursor cur=db.query("user", null, "_id= '"+userid+"'", null, null, null, null);
+//		if (userid<1)return 0;
+//		Cursor cur=db.query("user", null, "_id= '"+userid+"'", null, null, null, null);
+//		
+//		
+//		ContentValues cfgs;
+//		if(cur.moveToFirst()){
+//			cfgs = new ContentValues();
+//			DatabaseUtils.cursorRowToContentValues(cur,cfgs);
+//			cfgs.put(ColName_switch_sound, cur.getInt(2)==1?true:false);
+//			cfgs.put(ColName_switch_bg, cur.getInt(4)==1?true:false);
+//			cfgs.put(ColName_switch_vibration , cur.getInt(6)==1?true:false);
+//		}else{
+//			cfgs = null;
+//		}
+		//cur.close();
+		
 		defaultUser.close();
-		
-		ContentValues cfgs;
-		if(cur.moveToFirst()){
-			cfgs = new ContentValues();
-			DatabaseUtils.cursorRowToContentValues(cur,cfgs);
-			cfgs.put(ColName_switch_sound, cur.getInt(2)==1?true:false);
-			cfgs.put(ColName_switch_bg, cur.getInt(4)==1?true:false);
-			cfgs.put(ColName_switch_vibration , cur.getInt(6)==1?true:false);
-		}else{
-			cfgs = null;
-		}
-		cur.close();
-		
 		db.close();
 		dbh.close();
-		return 	cfgs;
+		return 	userid;
 	}
 	
 	/**
@@ -280,7 +281,7 @@ public class Database {
 		dbh = new DatabaseHelper(context,DBname,null,ver);
 		db = dbh.getWritableDatabase();
 		
-		Cursor cur=db.query(TabName_user,new String[]{"_id","username"}, "_id>1" , null, null, null, null);
+		Cursor cur=db.query(TabName_user,null, "_id>1" , null, null, null, null);
 		
 		ArrayList<ContentValues> userlist = new ArrayList<ContentValues>();
 		if(cur.moveToFirst()){
