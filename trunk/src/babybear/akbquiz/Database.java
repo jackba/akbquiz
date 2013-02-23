@@ -10,6 +10,7 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import android.widget.Toast;
 
 public class Database {
@@ -110,13 +111,7 @@ public class Database {
 				db.execSQL("CREATE TABLE user ("
 						+"_id INTEGER PRIMARY KEY AUTOINCREMENT, "
 						+ColName_username+" TEXT , "
-						+ColName_switch_bg+" BOOLEAN DEFAULT 1, "
-						+ColName_vol_bg+" INTEGER DEFAULT 10, "
-						+ColName_switch_sound+" BOOLEAN DEFAULT 1, "
-						+ColName_vol_sound+" INTEGER DEFAULT 10, "
-						+ColName_switch_vibration+" BOOLEAN DEFAULT 1, "
 						+ColName_extend+" INTEGER, "
-						+ColName_playlist+ " TEXT, "
 						+ColName_createTime+" DATETIME , "
 						+ColName_counter_correct+" INTEGER DEFAULT 0, "
 						+ColName_counter_wrong+" INTEGER DEFAULT 0, "
@@ -160,7 +155,7 @@ public class Database {
 		ContentValues values =new ContentValues();
 		values.put(ColName_username, username );
 		values.put(ColName_createTime, t.getTime());
-		values.put(ColName_playlist, "android.resource://babybear.akbquiz/"+ R.raw.bg);
+
 		long n= db.insert(TabName_user, null, values);
 		Toast.makeText(context, "用户:'"+username+"'已建立",Toast.LENGTH_SHORT).show();
 		
@@ -330,119 +325,6 @@ public class Database {
 		return quizlist;
 	}
 	
-	/**
-	 * 通过难度和团体获取 20个题目
-	 * @param difficulty 难度
-	 * @param group 相关的团
-	 * @return 题目内容
-	 */
-	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty , int group ){
-		return QuizQueryByGroup(group , GroupOrder_NULL , GroupOrder_NULL , GroupOrder_NULL , GroupOrder_NULL);
-	}
-	
-	/**
-	 * 通过难度和团体获取 20个题目
-	 * @param difficulty 难度
-	 * @param group1 相关的团1
-	 * @param group2 相关的团2
-	 * @return 题目内容
-	 */
-	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2){
-		return QuizQueryByGroup(group1 , group2 , GroupOrder_NULL , GroupOrder_NULL , GroupOrder_NULL);
-	}
-	
-	/**
-	 * 通过难度和团体获取 20个题目
-	 * @param difficulty 难度
-	 * @param group1 相关的团1
-	 * @param group2 相关的团2
-	 * @param group3 相关的团3
-	 * @return 题目内容
-	 */
-	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2 , int group3 ){
-		return QuizQueryByGroup(group1 , group2 , group3 , GroupOrder_NULL , GroupOrder_NULL);
-	}
-	
-	/**
-	 * 通过难度和团体获取 20个题目
-	 * @param difficulty 难度
-	 * @param group1 相关的团1
-	 * @param group2 相关的团2
-	 * @param group3 相关的团3
-	 * @param group4 相关的团4
-	 * @return
-	 */
-	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2 , int group3 , int group4){
-		return QuizQueryByGroup(group1 , group2 , group3 , group4 , GroupOrder_NULL);
-	}
-	
-	/**
-	 * 通过难度和团体获取 20个题目
-	 * @param difficulty 难度
-	 * @param group1 相关的团1
-	 * @param group2 相关的团2
-	 * @param group3 相关的团3
-	 * @param group4 相关的团4
-	 * @param group5 相关的团5
-	 * @return
-	 */
-	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty ,int group1 , int group2 , int group3 , int group4 , int group5){
-		
-		if(!DBname.equals(DBName_quiz))return null;
-		dbh = new DatabaseHelper(context,DBname,null,ver);
-		db = dbh.getWritableDatabase();
-		Cursor cur = null;
-		
-		String [] selectionArgs = new String [5];
-		if(group1!=GroupOrder_NULL){
-			selectionArgs[0] = GroupNames[group1];
-			if(group2!=GroupOrder_NULL){
-				selectionArgs[1] = GroupNames[group2];
-				if(group3!=GroupOrder_NULL){
-					selectionArgs[2] = GroupNames[group2];
-					if(group4!=GroupOrder_NULL){
-						selectionArgs[3] = GroupNames[group3];
-						if(group5!=GroupOrder_NULL){
-							selectionArgs[4] = GroupNames[group4];
-							cur = db.query(TabName_quiz, null, 
-									"( ?=1 OR ?=1 OR ?=1 OR ?=1 OR ?=1 ) AND difficulty = "+difficulty, selectionArgs, null , null, "random()","0,20");
-						}else{
-							cur = db.query(TabName_quiz, null, 
-									"( ?=1 OR ?=1 OR ?=1 OR ?=1 ) AND difficulty = "+difficulty , selectionArgs, null , null, "random()","0,20");
-						}
-					}else{
-						cur = db.query(TabName_quiz, null, 
-								"( ?=1 OR ?=1 OR ?=1 ) AND difficulty = "+difficulty , selectionArgs, null , null, "random()","0,20");
-					}
-				}else{
-					cur = db.query(TabName_quiz, null, 
-							"( ?=1 OR ?=1 ) AND difficulty = "+difficulty,selectionArgs, null , null, "random()","0,20");
-				}
-			}else{
-				cur = db.query(TabName_quiz, null, 
-						"?=1 AND difficulty = "+difficulty, selectionArgs, null , null, "random()","0,20");
-			}
-		}
-		
-		
-		
-		ArrayList<ContentValues> quizlist = new ArrayList<ContentValues>();
-		
-		if(cur.moveToFirst()){
-			do{
-				ContentValues quiz = new ContentValues();
-				DatabaseUtils.cursorRowToContentValues(cur,quiz);
-				quizlist.add(quiz);
-			}while(cur.moveToNext());
-		}else{
-			quizlist = null;
-		}
-		
-		cur.close();
-		db.close();
-		dbh.close();
-		return quizlist;
-	}
 	
 	/**
 	 * 通过难度和团体获取 20个题目
@@ -450,7 +332,7 @@ public class Database {
 	 * @param groups 相关的团
 	 * @return 题目内容
 	 */
-	public ArrayList<ContentValues> QuizQueryByGroup(int difficulty , String[] groups){
+	public ArrayList<ContentValues> QuizQuery(int difficulty , String[] groups){
 		
 		if(!DBname.equals(DBName_quiz))return null;
 		dbh = new DatabaseHelper(context,DBname,null,ver);
@@ -459,10 +341,12 @@ public class Database {
 		
 		String selection = "(?=1 ";
 		//String [] selectionArgs = new String [groups.length];
-		for(int i = 0 ; i < groups.length ; i++){
-			if(i>0)selection += "OR ?=1 ";
+		for(int i = 1 ; i < groups.length ; i++){
+			selection += "OR ?=1 ";
 		}
 		selection += ") AND difficulty = "+difficulty;
+		
+		Log.d("Database", "selection is : "+selection);
 		Cursor cur = db.query(TabName_quiz, null , selection , groups , null , null, "random()","0,20");;
 		
 		ArrayList<ContentValues> quizlist = new ArrayList<ContentValues>();
@@ -472,14 +356,60 @@ public class Database {
 				ContentValues quiz = new ContentValues();
 				DatabaseUtils.cursorRowToContentValues(cur,quiz);
 				quizlist.add(quiz);
+				Log.d("Database", "add One");
 			}while(cur.moveToNext());
 		}else{
 			quizlist = null;
 		}
+		
+		Log.d("Database", "get "+quizlist.size()+" rows");
 		
 		cur.close();
 		db.close();
 		dbh.close();
 		return quizlist;
 	}
+	
+	public ArrayList<ContentValues> QuizQuery(String[] groups){
+		if(!DBname.equals(DBName_quiz))return null;
+		
+		if(groups.length==0)return QuizQuery(20);
+		
+		dbh = new DatabaseHelper(context,DBname,null,ver);
+		db = dbh.getWritableDatabase();
+		
+		
+		String selection = "( ";
+		//String [] selectionArgs = new String [groups.length];
+		for(int i = 0 ; i < groups.length ; i++){
+			if(i>0)selection += " OR ";
+			selection +=groups[i]+"=1" ;
+		}
+		selection += ") ";
+		
+		Log.d("Database", "selection is : "+selection);
+		Cursor cur = db.query(TabName_quiz, null , selection , null , null , null, "random()","0,20");;
+		
+		ArrayList<ContentValues> quizlist = new ArrayList<ContentValues>();
+		
+		if(cur.moveToFirst()){
+			do{
+				ContentValues quiz = new ContentValues();
+				DatabaseUtils.cursorRowToContentValues(cur,quiz);
+				quizlist.add(quiz);
+			}while(cur.moveToNext());
+		}else{
+			quizlist = null;
+		}
+		
+		
+		
+		cur.close();
+		db.close();
+		dbh.close();
+		return quizlist;
+	};
+//	public ArrayList<ContentValues> QuizQuery1(String... groups){
+//		return null;
+//	}
 }
