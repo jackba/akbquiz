@@ -1,16 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="babybear.akbquiz"
-    android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionCode="2"
+    android:versionName="1.1.0" >
 
     <uses-sdk
         android:minSdkVersion="7"
-        android:targetSdkVersion="15" />
+        android:targetSdkVersion="17" />
     <uses-permission android:name="android.permission.READ_OWNER_DATA"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
-<application android:icon="@drawable/logo_48" android:label="@string/app_name" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
-        <activity android:name=".Welcome2" android:label="@string/app_name" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:icon="@drawable/fanhuashe">
-            <intent-filter>
+<application android:icon="@drawable/logo_48" android:label="@string/app_name" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:allowBackup="true">
+        <activity android:name=".Welcome2" android:label="@string/app_name" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:icon="@drawable/logo_48"><intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -18,8 +17,9 @@
         </activity>
         <activity android:name="MainMenu"></activity>
         <activity android:name="Quiz"></activity>
-        <activity android:name="Config"></activity>
+        <activity android:name="ConfigActivity"></activity>
         <service android:name="BgMusic"></service>
+        <activity android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" android:name="Chooser"></activity>
     </application>
 
 </manifest>

@@ -202,28 +202,42 @@
 	    android:layout_height="fill_parent"
 	    android:orientation="vertical" >
         
-
+        <Button
+            android:id="@+id/config_playlist_add"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="20dp"
+	        android:text="@string/config_bgm_add" />
 
 
         <ListView
             android:id="@+id/playlist"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent" >
+            android:layout_height="wrap_content" >
             
         </ListView>
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:orientation="vertical" >
+        
 		<TextView 
 		    android:id="@+id/current"
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content"
 		    android:textAppearance="?android:attr/textAppearanceMedium"
 		    android:text=""/>
-
+		
+		<Button
+            android:id="@+id/config_playlist_remove"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="20dp"
+	        android:text="@string/config_bgm_remove" />
+		
         <ListView
             android:id="@+id/musiclist"
             android:layout_width="fill_parent"

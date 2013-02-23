@@ -27,6 +27,8 @@
     <string name="config_save">保存所有设置</string>
     <string name="config_image_custom">自定义拼图图片</string>
     <string name="config_bgm_custom">播放列表</string>
+    <string name="config_bgm_add">添加</string>
+    <string name="config_bgm_remove">删除</string>
     <string name="config_audio">音频设置</string>
     <string name="config_choose_button">点击这里选择</string>
     <string name="config_vibration">振动</string>
@@ -43,7 +45,18 @@
     <string name="summary_right">正确：</string>
     <string name="summary_wrong">错误：</string>
     <string name="summary_time">用时：</string>
+    <string name="summary_mean_time">平均每题用时：</string>
     <string name="summary_rate">正确率：</string>
     <string name="summary_sum">答题：</string>
+    <string name="groupname_akb48">AKB48</string>
+    <string name="groupname_ske48">SKE48</string>
+    <string name="groupname_nmb48">NMB48</string>
+    <string name="groupname_hkt48">HKT48</string>
+    <string name="groupname_ngzk46">乃木板46</string>
+    <string name="groupname_sdn48">SDN48</string>
+    <string name="groupname_jkt48">JKT48</string>
+    <string name="groupname_snh48">SNH48</string>
+    
+    <string name="chooser_diffi">难度</string>
 
 </resources>

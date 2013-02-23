@@ -3,30 +3,29 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-
+
     <TextView
         android:id="@+id/record_username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Large Text"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
-
+
+
         <TextView
             android:id="@+id/TextView04"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/summary_sum"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-
+
         <TextView
             android:id="@+id/record_sum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -34,19 +33,19 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
-
+
+
         <TextView
             android:id="@+id/TextView02"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/summary_right"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-
+
         <TextView
             android:id="@+id/record_right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -54,19 +53,19 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
-
+
+
         <TextView
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/summary_wrong"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-
+
         <TextView
             android:id="@+id/record_wrong"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -74,19 +73,19 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
-
+
+
         <TextView
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/summary_rate"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-
+
         <TextView
             android:id="@+id/record_accuracy"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -94,19 +93,18 @@
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
-
+
         <TextView
             android:id="@+id/TextView07"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/summary_time"
+            android:text="@string/summary_mean_time"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-
+
         <TextView
             android:id="@+id/record_meantime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -121,12 +119,11 @@
             android:layout_height="wrap_content"
             android:text="@string/summary_time"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-
+
         <TextView
             android:id="@+id/record_sumtime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>

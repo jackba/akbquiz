@@ -15,6 +15,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,12 +36,15 @@ import android.widget.ViewFlipper;
 
 public class MainMenu extends Activity {
 
-	static final String databasePath = "/data/data/babybear.akbquiz/databases/AKBQuiz.db";
-	static final int REQUEST_START = 0, REQUEST_CONFIG = 1;
+	private static final String databasePath = "/data/data/babybear.akbquiz/databases/AKBQuiz.db";
+
+	public static final int REQUEST_CONFIG = 0, REQUEST_START_NORMAL = 1,
+			REQUEST_START_CHALLENGE = 2;
+
+	public static final String key_playmode = "playmode";
+
 	static Database db = null;
 	static SoundEffectManager se;
-	// static boolean isSoundOn =true;
-	// static ContentValues userdata=null;
 	static ArrayList<ContentValues> userList = null;
 	static int currentUserInList = 0;
 
@@ -47,13 +52,16 @@ public class MainMenu extends Activity {
 
 	static int whichIsChoose = 0;
 	static EditText T_username = null;
-	// static TextView TV_username=null;
 	static AlertDialog userCreator = null;
-	static AlertDialog chooser = null;
 
 	static ListView userListView = null;
 	static ArrayAdapter<ContentValues> userListAdapter = null;
 	static ViewFlipper menu_flipper = null;
+
+	int config_vol_bg, config_vol_sound;
+	boolean config_sw_bg, config_sw_sound, config_sw_vir;
+
+	SharedPreferences sp_cfg;
 
 	void setCurrent(int currentUserId) {
 		db.setCurrentUser(currentUserId);
@@ -64,7 +72,7 @@ public class MainMenu extends Activity {
 
 		username = userList.get(currentUserInList).getAsString(
 				Database.ColName_username);
-		((TextView) findViewById(R.id.username)).setText(username);
+		// ((TextView) findViewById(R.id.username)).setText(username);
 
 	}
 
@@ -74,23 +82,23 @@ public class MainMenu extends Activity {
 
 		db = new Database(this, Database.DBName_cfg);
 		se = new SoundEffectManager(this);
-		// mVibrator = (Vibrator)
-		// this.getSystemService(Service.VIBRATOR_SERVICE);
+		sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
+
+		// config_vol_bg=sp_cfg.getInt(Database.ColName_vol_bg, 10);
+		// config_vol_sound=sp_cfg.getInt(Database.ColName_vol_sound, 10);
+		// config_sw_bg=sp_cfg.getBoolean(Database.ColName_switch_bg, true);
+		// config_sw_sound=;
+		// config_sw_vir=sp_cfg.getBoolean(Database.ColName_switch_vibration,
+		// true);
 
 		menu_flipper = (ViewFlipper) findViewById(R.id.menu_flipper);
 		userListView = (ListView) findViewById(R.id.listview_user);
 
-		// if(userdata!=null){
-		// username = userdata
-		// TV_username.setText(username);
-		// se.setSwitch(userdata.getAsBoolean(Database.ColName_switch_sound));
-		// //Log.d("  ","userdata.getAsBoolean(ColName_switch_sound) = "+userdata.getAsInteger(Database.ColName_switch_sound));
-		// }
+		se.setSwitch(sp_cfg.getBoolean(Database.ColName_switch_sound, true));
 
 		refreshUserlist();
 		if (userList != null)
 			setCurrent(db.getCurrentUser());
-		setStartChooser();
 
 		OnClickListener l = new OnClickListener() {
 
@@ -100,39 +108,21 @@ public class MainMenu extends Activity {
 				se.play(se.sound_click);
 				switch (v.getId()) {
 				case R.id.start:
-					chooser.show();
-
+					Intent intent = new Intent(MainMenu.this, Chooser.class);
+					intent.putExtra(key_playmode, REQUEST_START_NORMAL);
+					startActivityForResult(intent,
+							MainMenu.REQUEST_START_NORMAL);
 					break;
 				case R.id.record:
 					refreshRecord();
 					showRecord();
 					break;
 				case R.id.users:
-
 					showUserList();
 					break;
 				case R.id.config:
-					Intent intent_cfg = new Intent(MainMenu.this, Config.class);
-					// intent_cfg.putExtras(userdata.getExtras());
-					ContentValues userdata = userList.get(currentUserInList);
-					intent_cfg.putExtra(Database.ColName_switch_bg,
-							userdata.getAsBoolean(Database.ColName_switch_bg));
-					intent_cfg.putExtra(Database.ColName_switch_sound, userdata
-							.getAsBoolean(Database.ColName_switch_sound));
-					intent_cfg
-							.putExtra(
-									Database.ColName_switch_vibration,
-									userdata.getAsBoolean(Database.ColName_switch_vibration));
-					intent_cfg.putExtra(Database.ColName_vol_bg,
-							userdata.getAsInteger(Database.ColName_vol_bg));
-					intent_cfg.putExtra(Database.ColName_vol_sound,
-							userdata.getAsInteger(Database.ColName_vol_sound));
-					intent_cfg.putExtra(Database.ColName_playlist,
-							userdata.getAsString(Database.ColName_playlist));
-					
-					Log.d("MainMenu",
-							"userdata.getAsBoolean(ColName_switch_bg = "
-									+ userdata.getAsBoolean(Database.ColName_switch_bg));
+					Intent intent_cfg = new Intent(MainMenu.this,
+							ConfigActivity.class);
 					startActivityForResult(intent_cfg, REQUEST_CONFIG);
 					break;
 				case R.id.create_user:
@@ -151,19 +141,17 @@ public class MainMenu extends Activity {
 		Intent intentBgMusic = new Intent(this, BgMusic.class);
 
 		if (userList == null) {
-			intentBgMusic.putExtra(Database.ColName_extend,
-					"android.resource://" + getPackageName() + "/" + R.raw.bg);
 			// intentBgMusic.putExtra(Database.ColName_extend,"");
 			intentBgMusic.putExtra(Database.ColName_vol_bg, 10);
-			intentBgMusic.putExtra(Database.ColName_switch_bg, 10);
+			intentBgMusic.putExtra(Database.ColName_switch_bg, true);
 		} else {
-			ContentValues userdata = userList.get(currentUserInList);
+
 			intentBgMusic.putExtra(Database.ColName_playlist,
-					userdata.getAsString(Database.ColName_playlist));
+					sp_cfg.getString(Database.ColName_playlist, ""));
 			intentBgMusic.putExtra(Database.ColName_vol_bg,
-					userdata.getAsInteger(Database.ColName_vol_bg));
+					sp_cfg.getInt(Database.ColName_vol_bg, 10));
 			intentBgMusic.putExtra(Database.ColName_switch_bg,
-					userdata.getAsBoolean(Database.ColName_switch_bg));
+					sp_cfg.getBoolean(Database.ColName_switch_bg, true));
 		}
 		startService(intentBgMusic);
 
@@ -209,53 +197,36 @@ public class MainMenu extends Activity {
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		ContentValues currUser = userList.get(currentUserInList);
 		ContentValues userdata = new ContentValues();
-		userdata.put(Database.ColName_id, userList.get(currentUserInList)
-				.getAsInteger(Database.ColName_id));
+		userdata.put(Database.ColName_id,
+				currUser.getAsInteger(Database.ColName_id));
+		
 		switch (requestCode) {
-		case REQUEST_START:
+		case REQUEST_START_NORMAL:
 			if (resultCode == Activity.RESULT_OK) {
 				int right = data.getIntExtra("right", 0)
-						+ userdata
-								.getAsInteger(Database.ColName_counter_correct), wrong = data
-						.getIntExtra("wrong", 0)
-						+ userdata.getAsInteger(Database.ColName_counter_wrong), time = data
-						.getIntExtra("time", 0)
-						+ userdata.getAsInteger(Database.ColName_time_played);
+						+ currUser
+								.getAsInteger(Database.ColName_counter_correct);
+				int wrong = data.getIntExtra("wrong", 0)
+						+ currUser.getAsInteger(Database.ColName_counter_wrong);
+				int time = data.getIntExtra("time", 0)
+						+ currUser.getAsInteger(Database.ColName_time_played);
 
-				// ContentValues uservalues=new ContentValues ();
 				userdata.put(Database.ColName_counter_correct, right);
 				userdata.put(Database.ColName_counter_wrong, wrong);
 				userdata.put(Database.ColName_time_played, time);
 				db.updateInfo(userdata.getAsInteger(Database.ColName_id),
 						userdata);
+				userList.get(currentUserInList).putAll(userdata);
 			}
 			break;
 		case REQUEST_CONFIG:
-			// ContentValues cfgvalues=new ContentValues ();
-			userdata.put(Database.ColName_switch_bg,
-					data.getBooleanExtra(Database.ColName_switch_bg, true));
-			userdata.put(Database.ColName_switch_sound,
-					data.getBooleanExtra(Database.ColName_switch_sound, true));
-			userdata.put(Database.ColName_switch_vibration, data
-					.getBooleanExtra(Database.ColName_switch_vibration, true));
-
-			userdata.put(Database.ColName_vol_bg,
-					data.getIntExtra(Database.ColName_vol_bg, 10));
-			userdata.put(Database.ColName_vol_sound,
-					data.getIntExtra(Database.ColName_vol_sound, 10));
-			userdata.put(Database.ColName_extend,
-					data.getStringExtra(Database.ColName_extend));
-			// cfgvalues.pu
-			Log.d("MainMenu","data.getBooleanExtra(Database.ColName_switch_bg, true) "+data.getBooleanExtra(Database.ColName_switch_bg, true));
-			Log.d("MainMenu",
-					"userdata.getAsBoolean(ColName_switch_bg) = "
-							+ userdata.getAsBoolean(Database.ColName_switch_bg));
-			db.updateInfo(userdata.getAsInteger(Database.ColName_id), userdata);
+			// TODO
 
 			break;
 		}
-		userList.get(currentUserInList).putAll(userdata);
+
 	}
 
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -273,64 +244,6 @@ public class MainMenu extends Activity {
 		}
 
 		return super.onKeyDown(keyCode, event);
-
-	}
-
-	/**
-	 * 配置难度选择器
-	 */
-	void setStartChooser() {
-		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.chooser,
-				null);
-
-		OnClickListener l_chooser = new OnClickListener() {
-
-			ContentValues userdata = userList.get(currentUserInList);
-
-			Intent intent = new Intent(MainMenu.this, Quiz.class);
-
-			String key_Lv = "lv";
-
-			@Override
-			public void onClick(View arg0) {
-
-				switch (arg0.getId()) {
-				case R.id.button_lv1:
-					intent.putExtra(key_Lv, 1);
-					break;
-				case R.id.button_lv2:
-					intent.putExtra(key_Lv, 2);
-					break;
-				case R.id.button_lv3:
-					intent.putExtra(key_Lv, 3);
-					break;
-				case R.id.button_lv4:
-					intent.putExtra(key_Lv, 4);
-					break;
-				}
-				intent.putExtra(Database.ColName_switch_vibration, userdata
-						.getAsInteger(Database.ColName_switch_vibration));
-				intent.putExtra(Database.ColName_switch_sound,
-						userdata.getAsInteger(Database.ColName_switch_sound));
-				chooser.dismiss();
-				startActivityForResult(intent, REQUEST_START);
-			}
-		};
-
-		Button lv1 = (Button) layout.findViewById(R.id.button_lv1);
-		Button lv2 = (Button) layout.findViewById(R.id.button_lv2);
-		Button lv3 = (Button) layout.findViewById(R.id.button_lv3);
-		Button lv4 = (Button) layout.findViewById(R.id.button_lv4);
-
-		lv1.setOnClickListener(l_chooser);
-		lv2.setOnClickListener(l_chooser);
-		lv3.setOnClickListener(l_chooser);
-		lv4.setOnClickListener(l_chooser);
-
-		AlertDialog.Builder chooser_b = new AlertDialog.Builder(this);
-		chooser = chooser_b.setPositiveButton(android.R.string.cancel, null)
-				.setView(layout).create();
 
 	}
 
@@ -377,17 +290,11 @@ public class MainMenu extends Activity {
 
 					}
 
-					setCurrent((int) db.addUser(t_username));
-
-					// db.setCurrentUser((int)id);
-					// userdata=db.getCurrentUser();
-					// username=userdata.getAsString(Database.ColName_username);
-					// TV_username.setText(username);
-
+					int newUserId = (int) db.addUser(t_username);
 					refreshUserlist();
+					setCurrent(newUserId);
 
-					se.setSwitch(userList.get(currentUserInList).getAsBoolean(
-							Database.ColName_switch_sound));
+					se.setSwitch(true);
 				}
 				userCreator.cancel();
 
@@ -471,6 +378,8 @@ public class MainMenu extends Activity {
 	 */
 	protected void refreshUserlist() {
 		userList = db.userListQuery();
+		if (userList == null)
+			return;
 		for (int i = 0; i < userList.size(); i++) {
 			Log.d("refreshUserList",
 					userList.get(i).getAsString(Database.ColName_username));
@@ -628,6 +537,17 @@ public class MainMenu extends Activity {
 	 * 首次运行
 	 */
 	void firstRun() {
+
+		Editor cfg_Editor = sp_cfg.edit();
+		cfg_Editor.putBoolean(Database.ColName_switch_bg, true);
+		cfg_Editor.putBoolean(Database.ColName_switch_sound, true);
+		cfg_Editor.putBoolean(Database.ColName_switch_vibration, true);
+		cfg_Editor.putInt(Database.ColName_vol_bg, 10);
+		cfg_Editor.putInt(Database.ColName_vol_sound, 10);
+		cfg_Editor.putString(Database.ColName_playlist, "android.resource://"
+				+ getPackageName() + "/" + R.raw.bg);
+		cfg_Editor.commit();
+
 		AssetManager am = getAssets();
 		File fileout = new File(databasePath);
 		if (!fileout.exists()) {
