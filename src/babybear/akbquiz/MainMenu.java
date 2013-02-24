@@ -201,7 +201,7 @@ public class MainMenu extends Activity {
 		ContentValues userdata = new ContentValues();
 		userdata.put(Database.ColName_id,
 				currUser.getAsInteger(Database.ColName_id));
-		
+
 		switch (requestCode) {
 		case REQUEST_START_NORMAL:
 			if (resultCode == Activity.RESULT_OK) {
@@ -335,17 +335,12 @@ public class MainMenu extends Activity {
 
 		TextView TV_username = (TextView) layout
 				.findViewById(R.id.record_username);
-		if (TV_username == null)
-			Log.d("", "TV_username = null");
-		if (username.equals(""))
-			Log.d("", "username = ''");
-
 		TV_username.setText(username);
 
 		ContentValues userdata = userList.get(currentUserInList);
-		int right = userdata.getAsInteger(Database.ColName_counter_correct), wrong = userdata
-				.getAsInteger(Database.ColName_counter_wrong), sumtime = userdata
-				.getAsInteger(Database.ColName_time_played);
+		int right = userdata.getAsInteger(Database.ColName_counter_correct);
+		int wrong = userdata.getAsInteger(Database.ColName_counter_wrong);
+		int sumtime = userdata.getAsInteger(Database.ColName_time_played);
 
 		TextView TV_sum = (TextView) layout.findViewById(R.id.record_sum);
 		TV_sum.setText("" + (right + wrong));

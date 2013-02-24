@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_checked="true"
-        android:drawable="@drawable/group_nmb_alt" /> <!-- pressed -->
-    <item android:drawable="@drawable/group_nmb" /> <!-- default/unchecked -->
+        android:drawable="@drawable/group_nmb" /> <!-- pressed -->
+    <item android:drawable="@drawable/group_nmb_alt" /> <!-- default/unchecked -->
 </selector>
