@@ -339,10 +339,11 @@ public class Database {
 		db = dbh.getWritableDatabase();
 		
 		
-		String selection = "(?=1 ";
+		String selection = "(";
 		//String [] selectionArgs = new String [groups.length];
-		for(int i = 1 ; i < groups.length ; i++){
-			selection += "OR ?=1 ";
+		for(int i = 0 ; i < groups.length ; i++){
+			if(i>0)selection += " OR ";
+			selection += groups[i]+"=1";
 		}
 		selection += ") AND difficulty = "+difficulty;
 		
@@ -356,7 +357,6 @@ public class Database {
 				ContentValues quiz = new ContentValues();
 				DatabaseUtils.cursorRowToContentValues(cur,quiz);
 				quizlist.add(quiz);
-				Log.d("Database", "add One");
 			}while(cur.moveToNext());
 		}else{
 			quizlist = null;
@@ -379,29 +379,32 @@ public class Database {
 		db = dbh.getWritableDatabase();
 		
 		
-		String selection = "( ";
+		String selection = "";
 		//String [] selectionArgs = new String [groups.length];
 		for(int i = 0 ; i < groups.length ; i++){
 			if(i>0)selection += " OR ";
 			selection +=groups[i]+"=1" ;
 		}
-		selection += ") ";
 		
 		Log.d("Database", "selection is : "+selection);
-		Cursor cur = db.query(TabName_quiz, null , selection , null , null , null, "random()","0,20");;
+		Cursor cur = db.query(TabName_quiz, null , selection , null , null , null, "random()","0,20");
 		
-		ArrayList<ContentValues> quizlist = new ArrayList<ContentValues>();
+		ArrayList<ContentValues> quizlist;
 		
-		if(cur.moveToFirst()){
-			do{
-				ContentValues quiz = new ContentValues();
-				DatabaseUtils.cursorRowToContentValues(cur,quiz);
-				quizlist.add(quiz);
-			}while(cur.moveToNext());
+		if(cur.getCount()>0){
+			quizlist = new ArrayList<ContentValues>();
+			if(cur.moveToFirst()){
+				do{
+					ContentValues quiz = new ContentValues();
+					DatabaseUtils.cursorRowToContentValues(cur,quiz);
+					quizlist.add(quiz);
+				}while(cur.moveToNext());
+			}else{
+				quizlist = null;
+			}
 		}else{
 			quizlist = null;
 		}
-		
 		
 		
 		cur.close();

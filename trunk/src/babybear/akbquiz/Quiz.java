@@ -231,28 +231,25 @@ public class Quiz extends Activity {
 		if (data.getBoolean(Database.GroupName_SNH48)) {
 			groups.add(Database.GroupName_SNH48);
 		}
-//		quizList = db.QuizQuery(data.getInt(Database.ColName_DIFFICULTY, 1),
-//				groups.toArray(new String[0]));
+		// quizList = db.QuizQuery(data.getInt(Database.ColName_DIFFICULTY, 1),
+		// groups.toArray(new String[0]));
 		String[] group = groups.toArray(new String[0]);
-		
-//		for(String a:group){
-//			Log.d("Quiz", a);
-//		}
-		
+
 		quizList = db.QuizQuery(group);
 		
-		Log.d("Quiz", "get "+quizList.size()+" rows");
 		
+		// Log.d("Quiz", "get "+quizList.size()+" rows");
+
 		quiz_index = 0;
 	}
 
 	void setQuiz() {
-		
-		if(quizList == null){
+
+		if (quizList == null || quizList.size() == 0) {
 			Toast.makeText(this, "十分抱歉，题库中没有您要的题目", Toast.LENGTH_SHORT).show();
-			finish();
+			return;
 		}
-		
+
 		Log.d(TAG, "setQuiz()");
 		Random r = new Random();
 
@@ -266,8 +263,8 @@ public class Quiz extends Activity {
 		ContentValues a_quiz = quizList.get(quiz_index);
 		quiz_Question.setText("ID. " + a_quiz.getAsInteger(Database.ColName_id)
 				+ "\n  " + a_quiz.getAsString(Database.ColName_QUESTION));
-//		quiz_Title.setText("" + (quiz_index + 1) + "  出题者:"
-//				+ a_quiz.getAsString(Database.ColName_EDITOR));
+		// quiz_Title.setText("" + (quiz_index + 1) + "  出题者:"
+		// + a_quiz.getAsString(Database.ColName_EDITOR));
 
 		int[] answer_index = new int[4];
 		for (int i = 0; i < 4; i++) {

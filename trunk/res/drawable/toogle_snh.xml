@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_checked="true"
-        android:drawable="@drawable/group_snh_alt" /> <!-- pressed -->
-    <item android:drawable="@drawable/group_snh" /> <!-- default/unchecked -->
+        android:drawable="@drawable/group_snh" /> <!-- pressed -->
+    <item android:drawable="@drawable/group_snh_alt" /> <!-- default/unchecked -->
 </selector>
