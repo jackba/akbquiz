@@ -16,12 +16,10 @@
             android:text="@string/summary_time"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-
         <TextView
             android:id="@+id/summary_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -38,13 +36,10 @@
             android:text="@string/summary_sum"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-
-
         <TextView
             android:id="@+id/summary_sum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -61,12 +56,10 @@
             android:text="@string/summary_right"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-
         <TextView
             android:id="@+id/summary_right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -83,12 +76,10 @@
             android:text="@string/summary_wrong"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-
         <TextView
             android:id="@+id/summary_wrong"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
@@ -105,13 +96,10 @@
             android:text="@string/summary_rate"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-
-
         <TextView
             android:id="@+id/summary_rate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>

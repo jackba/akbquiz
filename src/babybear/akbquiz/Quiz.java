@@ -14,6 +14,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.Gravity;
@@ -23,7 +25,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
-import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -99,71 +100,18 @@ public class Quiz extends Activity {
 
 		LayoutInflater mLayoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View rightView = mLayoutInflater.inflate(R.layout.right, null);
-
+		rightAnim = AnimationUtils.loadAnimation(this, R.anim.show_fade_out);
+		rightView.findViewById(R.id.anim_obj).setAnimation(rightAnim);
 		Right = new PopupWindow(rightView);
 		Right.setWidth(LayoutParams.FILL_PARENT);
 		Right.setHeight(LayoutParams.FILL_PARENT);
 
 		View wrongView = mLayoutInflater.inflate(R.layout.wrong, null);
+		wrongAnim = AnimationUtils.loadAnimation(this, R.anim.show_fade_out);
+		wrongView.findViewById(R.id.anim_obj).setAnimation(wrongAnim);
 		Wrong = new PopupWindow(wrongView);
 		Wrong.setWidth(LayoutParams.FILL_PARENT);
 		Wrong.setHeight(LayoutParams.FILL_PARENT);
-
-		rightAnim = AnimationUtils.loadAnimation(this, R.anim.show_fade_out);
-		// rightAnim.setStartOffset(300);
-		rightAnim.setAnimationListener(new AnimationListener() {
-
-			@Override
-			public void onAnimationEnd(Animation animation) {
-
-				Right.dismiss();
-				if (quiz_index >= quizList.size()) {
-					summary();
-				} else
-					setQuiz();
-
-			}
-
-			@Override
-			public void onAnimationRepeat(Animation animation) {
-
-			}
-
-			@Override
-			public void onAnimationStart(Animation animation) {
-
-			}
-
-		});
-
-		View rightAnimObj = rightView.findViewById(R.id.anim_obj);
-		rightAnimObj.setAnimation(rightAnim);
-
-		wrongAnim = AnimationUtils.loadAnimation(this, R.anim.show_fade_out);
-		// wrongAnim.setStartOffset(300);
-		wrongAnim.setAnimationListener(new AnimationListener() {
-
-			@Override
-			public void onAnimationEnd(Animation animation) {
-				Wrong.dismiss();
-				if (quiz_index >= quizList.size()) {
-					summary();
-				} else
-					setQuiz();
-			}
-
-			@Override
-			public void onAnimationRepeat(Animation animation) {
-
-			}
-
-			@Override
-			public void onAnimationStart(Animation animation) {
-
-			}
-		});
-		View wrongAnimObj = wrongView.findViewById(R.id.anim_obj);
-		wrongAnimObj.setAnimation(wrongAnim);
 
 		getQuiz();
 		timer.scheduleAtFixedRate(t_timer, 1000, 1000);
@@ -175,6 +123,7 @@ public class Quiz extends Activity {
 		// getQuiz();
 		setQuiz();
 	}
+	
 
 	public void onStop() {
 		super.onStop();
@@ -182,11 +131,6 @@ public class Quiz extends Activity {
 			Right.dismiss();
 		if (Wrong.isShowing())
 			Wrong.dismiss();
-
-	}
-
-	public void onDestory() {
-		super.onDestroy();
 
 	}
 
@@ -198,6 +142,7 @@ public class Quiz extends Activity {
 
 			finish();
 			break;
+			
 		}
 
 		return super.onKeyDown(keyCode, event);
@@ -236,9 +181,6 @@ public class Quiz extends Activity {
 		String[] group = groups.toArray(new String[0]);
 
 		quizList = db.QuizQuery(group);
-		
-		
-		// Log.d("Quiz", "get "+quizList.size()+" rows");
 
 		quiz_index = 0;
 	}
@@ -249,7 +191,7 @@ public class Quiz extends Activity {
 			Toast.makeText(this, "十分抱歉，题库中没有您要的题目", Toast.LENGTH_SHORT).show();
 			return;
 		}
-
+		Log.d("Quiz", "get " + quizList.size() + " rows");
 		Log.d(TAG, "setQuiz()");
 		Random r = new Random();
 
@@ -263,8 +205,8 @@ public class Quiz extends Activity {
 		ContentValues a_quiz = quizList.get(quiz_index);
 		quiz_Question.setText("ID. " + a_quiz.getAsInteger(Database.ColName_id)
 				+ "\n  " + a_quiz.getAsString(Database.ColName_QUESTION));
-		// quiz_Title.setText("" + (quiz_index + 1) + "  出题者:"
-		// + a_quiz.getAsString(Database.ColName_EDITOR));
+		quiz_Title.setText("第" + (quiz_index + 1) + "题  出题者:"
+				+ a_quiz.getAsString(Database.ColName_EDITOR));
 
 		int[] answer_index = new int[4];
 		for (int i = 0; i < 4; i++) {
@@ -292,6 +234,19 @@ public class Quiz extends Activity {
 		quiz_index++;
 		if (answer == correct_answer) {
 			Right.showAtLocation(findViewById(R.id.full), Gravity.CENTER, 0, 0);
+
+			new Handler().postDelayed(new Runnable() {
+				public void run() {
+					Right.dismiss();
+					rightAnim.reset();
+					if (quiz_index < quizList.size()) {
+						setQuiz();
+					} else {
+						summary();
+					}
+				}
+			}, rightAnim.getDuration());
+
 			rightAnim.startNow();
 			if (isVibratorOn)
 				vibrator.vibrate(v_right, -1);
@@ -300,6 +255,17 @@ public class Quiz extends Activity {
 			Log.d(TAG, "Right");
 		} else {
 			Wrong.showAtLocation(findViewById(R.id.full), Gravity.CENTER, 0, 0);
+			new Handler().postDelayed(new Runnable() {
+				public void run() {
+					Wrong.dismiss();
+					wrongAnim.reset();
+					if (quiz_index < quizList.size()) {
+						setQuiz();
+					} else {
+						summary();
+					}
+				}
+			}, wrongAnim.getDuration());
 			wrongAnim.startNow();
 			if (isVibratorOn)
 				vibrator.vibrate(v_wrong, -1);
@@ -311,6 +277,7 @@ public class Quiz extends Activity {
 	}
 
 	void summary() {
+		Log.d(TAG, "Summary");
 		timer.cancel();
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.summary,
@@ -349,6 +316,8 @@ public class Quiz extends Activity {
 						}).setTitle("统计信息").setView(layout).create().show();
 
 	}
+	
+
 
 	OnClickListener l = new OnClickListener() {
 
@@ -378,9 +347,6 @@ public class Quiz extends Activity {
 		@Override
 		public void run() {
 			time_count++;
-			// Message msg= new Message();
-			// msg.what=1;
-			// h_timer.sendMessage(msg);
 		}
 	};
 }

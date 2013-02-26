@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,12 +20,14 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -164,22 +167,6 @@ public class MainMenu extends Activity {
 
 	}
 
-	protected void onRestart() {
-		super.onRestart();
-
-	}
-
-	protected void onResume() {
-		super.onResume();
-		// Message msg = new Message();
-		// msg.arg1=BgMusic.BGHandler.PLAY;
-		// BgMusic.bgHandler.sendMessage(msg);
-	}
-
-	protected void onPause() {
-		super.onPause();
-	}
-
 	protected void onStop() {
 		super.onStop();
 
@@ -233,14 +220,36 @@ public class MainMenu extends Activity {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BACK:
 			if (menu_flipper.getDisplayedChild() == 0) {
-				Intent intentBgMusic = new Intent(this, BgMusic.class);
-				stopService(intentBgMusic);
-				finish();
+				DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface arg0, int arg1) {
+						switch (arg1) {
+						case Dialog.BUTTON_NEGATIVE:
+							break;
+						case Dialog.BUTTON_POSITIVE:
+							Intent intentBgMusic = new Intent(MainMenu.this,
+									BgMusic.class);
+							stopService(intentBgMusic);
+							finish();
+							break;
+						}
+
+					}
+				};
+
+				new AlertDialog.Builder(this)
+						.setNegativeButton(android.R.string.cancel, listener)
+						.setPositiveButton(android.R.string.ok, listener)
+						.setIcon(R.drawable.logo_48)
+						.setTitle(R.string.menu_quit).create().show();
+
 			} else {
 				menu_flipper.showPrevious();
 				return false;
 			}
 			break;
+
 		}
 
 		return super.onKeyDown(keyCode, event);

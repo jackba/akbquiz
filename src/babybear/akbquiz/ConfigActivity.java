@@ -71,7 +71,7 @@ public class ConfigActivity extends Activity {
 		defaultMusic = defaultbg;
 
 		init();
-		
+
 	}
 
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -85,7 +85,6 @@ public class ConfigActivity extends Activity {
 				cfgflipper.showPrevious();
 				return false;
 			}
-
 			break;
 		}
 
@@ -208,7 +207,8 @@ public class ConfigActivity extends Activity {
 								.setText("正在操作第 " + (onModifing + 1) + " 项 \""
 										+ playlistList.get(onModifing).TITLE
 										+ " \":");
-						((Button) findViewById(R.id.config_playlist_remove)).setText("移除");
+						((Button) findViewById(R.id.config_playlist_remove))
+								.setText("移除");
 					}
 				});
 		playlistView = (ListView) findViewById(R.id.playlist);
@@ -251,7 +251,8 @@ public class ConfigActivity extends Activity {
 						onModifing = position;
 						cfgflipper.showNext();
 						((TextView) findViewById(R.id.current)).setText("添加:");
-						((Button) findViewById(R.id.config_playlist_remove)).setText("取消");
+						((Button) findViewById(R.id.config_playlist_remove))
+								.setText("取消");
 					}
 
 				});
@@ -261,15 +262,16 @@ public class ConfigActivity extends Activity {
 
 					@Override
 					public void onClick(View v) {
-						if(onModifing != playlistList.size()){
-						
+						if (onModifing != playlistList.size()) {
+
 							playlistList.remove(onModifing);
-	
-	//						PlaylistAdapter adapter = (PlaylistAdapter) playlistView
-	//								.getAdapter();
-	//						adapter.remove(adapter.getItem(onModifing));
+
+							// PlaylistAdapter adapter = (PlaylistAdapter)
+							// playlistView
+							// .getAdapter();
+							// adapter.remove(adapter.getItem(onModifing));
 							savePlaylist();
-	
+
 							isPlaylistChanged = true;
 						}
 						cfgflipper.showPrevious();
@@ -396,7 +398,7 @@ public class ConfigActivity extends Activity {
 		}
 
 	}
-	
+
 	@SuppressWarnings("unused")
 	private class Music {
 		int _ID;
@@ -404,4 +406,5 @@ public class ConfigActivity extends Activity {
 		boolean isExist;
 		String TITLE, ARTIST, ALBUM, DATA;
 	}
+
 }
