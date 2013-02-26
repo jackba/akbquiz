@@ -21,6 +21,7 @@
 	        android:layout_alignParentTop="true"
 	        android:layout_centerHorizontal="true"
 	        android:layout_marginTop="48dp"
+	        android:contentDescription="@string/groupname_akb48"
 	        android:src="@drawable/manu_title" />
 
 	    <LinearLayout
@@ -70,11 +71,12 @@
 	     android:orientation="vertical" >
 
 		<Button
-    	    android:id="@+id/create_user"
-    	    android:layout_width="fill_parent"
-    	    android:layout_height="wrap_content"
-    	    android:layout_margin="10dp"
-    	    android:text="建立新用户" ></Button>
+		    android:id="@+id/create_user"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_margin="10dp"
+		    android:text="@string/menu_new_user" >
+</Button>
 		<LinearLayout
 		    android:layout_width="fill_parent"
 		    android:layout_height="wrap_content" >

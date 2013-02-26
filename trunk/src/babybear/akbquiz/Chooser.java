@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -216,6 +217,10 @@ public class Chooser extends Activity {
 		}
 
 		return super.onKeyDown(keyCode, e);
+	}
+	
+	protected void onRestart() {
+		super.onRestart();
 	}
 
 }

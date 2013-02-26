@@ -1,13 +1,19 @@
 package babybear.akbquiz;
 
+import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -21,33 +27,29 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class BgMusic extends Service {
-	private static String TAG = "BgMusic";
-	MediaPlayer player;
-	AudioManager am;
-	int PlayingNo = 0;
-	int playlistLength = 0;
-	static final int MODE_LOOP = 0, MODE_RANDOM = 1, MODE_SINGLE = 2;
-	int mode = MODE_LOOP;
-	Uri[] playlist;
-	Random r = new Random();
-	boolean isOn = true;
+	private static final String TAG = "BgMusic";
+	private static final int MODE_LOOP = 0, MODE_RANDOM = 1, MODE_SINGLE = 2;
+
+	private MediaPlayer player;
+	private AudioManager am;
+	private ActivityManager activityManager;
+	private int PlayingNo = 0;
+	private int playlistLength = 0;
+
+	private int mode = MODE_LOOP;
+	private Uri[] playlist;
+	private Random r = new Random();
+	private boolean isOn = true;
+	private boolean isRunning;
+	private boolean isScreenOn;
+	private String packageName;
 
 	static BGHandler bgHandler;
+	private BroadcastReceiver receiverScreen;
 
 	@Override
 	public IBinder onBind(Intent arg0) {
 		return null;
-	}
-
-	@Override
-	public void onCreate() {
-		Log.d(TAG, "++onCreate++");
-		// defaultMusicNum=Puzzle.BGMs.length();
-		// totalMusicNum=Puzzle.user.CUSTOM_MUSIC_NUM + defaultMusicNum;
-
-		super.onCreate();
-		bgHandler = new BGHandler();
-
 	}
 
 	OnCompletionListener CompL = new MediaPlayer.OnCompletionListener() {
@@ -101,12 +103,6 @@ public class BgMusic extends Service {
 
 	};
 
-	void errorToast(Exception e) {
-		Toast.makeText(BgMusic.this,
-				"Unexpected error in: " + TAG + " . error:" + e.getMessage(),
-				Toast.LENGTH_SHORT).show();
-	}
-
 	OnErrorListener ErrL = new MediaPlayer.OnErrorListener() {
 		@Override
 		public boolean onError(MediaPlayer mp, int what, int extra) {
@@ -117,9 +113,72 @@ public class BgMusic extends Service {
 		}
 	};
 
+	void errorToast(Exception e) {
+		Toast.makeText(BgMusic.this,
+				"Unexpected error in: " + TAG + " . error:" + e.getMessage(),
+				Toast.LENGTH_SHORT).show();
+	}
+
+	public boolean isAppOnForeground() {
+
+		// if (!((KeyguardManager) this.getSystemService(KEYGUARD_SERVICE))
+		// .inKeyguardRestrictedInputMode())
+		// return false;
+
+		// Returns a list of application processes that are running on the
+		// device
+		List<RunningAppProcessInfo> appProcesses = activityManager
+				.getRunningAppProcesses();
+		if (appProcesses == null) {
+			return false;
+		}
+
+		for (RunningAppProcessInfo appProcess : appProcesses) {
+			// The name of the process that this object is associated with.
+			if (appProcess.processName.equals(packageName)
+					&& appProcess.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void setPlaylist(String uristr) {
+		playlistLength = 0;
+		try {
+			JSONArray arr = new JSONArray(uristr);
+			playlistLength = arr.length();
+			if (playlistLength == 0)
+				return;
+			playlist = new Uri[playlistLength];
+			for (int i = 0; i < playlistLength; i++) {
+				playlist[i] = Uri.parse(arr.getString(i));
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onCreate() {
+		Log.d(TAG, "++onCreate++");
+		// defaultMusicNum=Puzzle.BGMs.length();
+		// totalMusicNum=Puzzle.user.CUSTOM_MUSIC_NUM + defaultMusicNum;
+
+		super.onCreate();
+		bgHandler = new BGHandler(this);
+		isRunning = true;
+		isScreenOn = true;
+		activityManager = (ActivityManager) this
+				.getSystemService(Context.ACTIVITY_SERVICE);
+
+	}
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "+onStart+");
+
 		isOn = intent.getBooleanExtra(Database.ColName_switch_bg, true);
 
 		setPlaylist(getSharedPreferences("config", Context.MODE_PRIVATE)
@@ -128,7 +187,7 @@ public class BgMusic extends Service {
 		am.setStreamVolume(AudioManager.STREAM_MUSIC,
 				intent.getIntExtra(Database.ColName_vol_bg, 10), 0);
 
-		if (playlist!=null) {
+		if (playlist != null) {
 			player = MediaPlayer.create(this, playlist[PlayingNo]);
 			if (isOn)
 				player.start();
@@ -143,6 +202,55 @@ public class BgMusic extends Service {
 		player.setLooping(false);
 		player.setOnCompletionListener(CompL);
 
+		// 注册锁屏广播接收
+		receiverScreen = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context arg0, Intent intent) {
+				final String action = intent.getAction();
+				if (Intent.ACTION_SCREEN_ON.equals(action)) {
+					Log.d(TAG, "SCREEN ON");
+					if (isOn)
+						if (!player.isPlaying())
+							player.start();
+					isScreenOn = true;
+				} else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
+					Log.d(TAG, "SCREEN OFF");
+					if (player.isPlaying())
+						player.pause();
+					isScreenOn = false;
+				}
+
+			}
+		};
+
+		registerReceiver(receiverScreen, new IntentFilter(
+				Intent.ACTION_SCREEN_ON));
+		registerReceiver(receiverScreen, new IntentFilter(
+				Intent.ACTION_SCREEN_OFF));
+
+		// 开始监测线程
+		packageName = getPackageName();
+		new Thread() {
+			public void run() {
+				Message msg = new Message();
+				try {
+					while (isRunning) {
+						if (isScreenOn)
+							if (isAppOnForeground()) {
+								msg.arg1 = BGHandler.PLAY;
+								bgHandler.sendMessage(msg);
+							} else {
+								msg.arg1 = BGHandler.PAUSE;
+								bgHandler.sendMessage(msg);
+							}
+						Thread.sleep(1000);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}.start();
+
 		return START_STICKY;
 	}
 
@@ -150,108 +258,86 @@ public class BgMusic extends Service {
 	public void onDestroy() {
 		// Log.d(TAG, "--onDestroy--");
 		player.release();
+		isRunning = false;
+		this.unregisterReceiver(receiverScreen);
 
 	}
 
-	public void setPlaylist(String uristr) {
-		playlistLength = 0;
-		// if(uristr==null) uristr="";
-		// String[] uriStrings=uristr.split(regularExpression);
-		// if(uriStrings.length==0)return;
-		// for (int i=0;i<uriStrings.length;i++){
-		// if(!uriStrings[i].equals("")){
-		// playlist[playlistLength]=Uri.parse(uriStrings[i]);
-		// playlistLength++;
-		// }
-		// }
-		// for(int i=0;i<playlistLength;i++){
-		// Log.d("BgMusic","playlist[" +i+"] = "+ playlist[i].toString());
-		// }
-		//
-		try {
-			JSONArray arr = new JSONArray(uristr);
-			playlistLength = arr.length();
-			if (playlistLength == 0)
-				return;
-			playlist= new Uri[playlistLength];
-			for (int i = 0; i < playlistLength; i++) {
-				playlist[i] = Uri.parse(arr.getString(i));
-			}
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public class BGHandler extends Handler {
+	static public class BGHandler extends Handler {
 		public static final int VOL_CHANGE = 1, SWITCH_CHANGE = 2,
 				LOOP_CHANGE = 3, PLAYLIST_CHANGE = 4, PAUSE = -1, PLAY = 0;
 
-		public BGHandler() {
+		WeakReference<BgMusic> mService;
 
+		public BGHandler(BgMusic service) {
+			mService = new WeakReference<BgMusic>(service);
 		}
 
-		public BGHandler(Looper L) {
+		public BGHandler(BgMusic service,Looper L) {
 			super(L);
+			mService = new WeakReference<BgMusic>(service);
 		}
 
 		@Override
 		public void handleMessage(Message msg) {
-
-			Log.d(TAG, "msg.arg1 : " + msg.arg1 + " msg.what : " + msg.what);
+			BgMusic theService = mService.get();
+			Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : " + msg.what);
 			switch (msg.arg1) {
 			case PAUSE:
-				if (player.isPlaying())
-					player.pause();
+				if (theService.player.isPlaying())
+					theService.player.pause();
 				break;
 			case PLAY:
-				if (!player.isPlaying())
-					player.start();
+				if (!theService.player.isPlaying())
+					if (theService.isOn)
+						theService.player.start();
 				break;
 
 			case VOL_CHANGE:
-				am.setStreamVolume(AudioManager.STREAM_MUSIC, msg.what, 0);
+				theService.am.setStreamVolume(AudioManager.STREAM_MUSIC,
+						msg.what, 0);
 				break;
 			case SWITCH_CHANGE:
 				switch (msg.what) {
 				case 0:
-					isOn = false;
-					player.pause();
+					theService.isOn = false;
+					theService.player.pause();
 					break;
 				case 1:
-					isOn = true;
-					player.start();
+					theService.isOn = true;
+					theService.player.start();
 					break;
 				}
 				break;
 			case LOOP_CHANGE:
-				mode = msg.what;
+				theService.mode = msg.what;
 				break;
 			case PLAYLIST_CHANGE:
-				if (player != null) {
-					if (player.isPlaying())
-						player.stop();
-					player.release();
+				if (theService.player != null) {
+					if (theService.player.isPlaying())
+						theService.player.stop();
+					theService.player.release();
 				}
 
-				PlayingNo = 0;
-				setPlaylist(getSharedPreferences("config", Context.MODE_PRIVATE)
+				theService.PlayingNo = 0;
+				theService.setPlaylist(
+						theService.getSharedPreferences("config", Context.MODE_PRIVATE)
 						.getString(Database.ColName_playlist, ""));
 
-				if (playlistLength > 0) {
-					player = MediaPlayer.create(BgMusic.this,
-							playlist[PlayingNo]);
-					if (isOn)
-						player.start();
+				if (theService.playlistLength > 0) {
+					theService.player = MediaPlayer.create(theService,
+							theService.playlist[theService.PlayingNo]);
+					if (theService.isOn)
+						theService.player.start();
 				} else {
-					player = MediaPlayer.create(
-							BgMusic.this,
-							Uri.parse("android.resource://" + getPackageName()
+					theService.player = MediaPlayer.create(
+							theService,
+							Uri.parse("android.resource://" + theService.getPackageName()
 									+ "/" + R.raw.bg));
 				}
 
-				player.setLooping(false);
-				player.setOnCompletionListener(CompL);
+				theService.player.setLooping(false);
+				theService.player.setOnCompletionListener(theService.CompL);
 				break;
 			}
 			super.handleMessage(msg);
