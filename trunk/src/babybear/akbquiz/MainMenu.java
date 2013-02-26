@@ -241,7 +241,7 @@ public class MainMenu extends Activity {
 				new AlertDialog.Builder(this)
 						.setNegativeButton(android.R.string.cancel, listener)
 						.setPositiveButton(android.R.string.ok, listener)
-						.setIcon(R.drawable.logo_48)
+						.setIcon(R.drawable.app_ico_48)
 						.setTitle(R.string.menu_quit).create().show();
 
 			} else {
@@ -323,7 +323,7 @@ public class MainMenu extends Activity {
 
 		AlertDialog.Builder userCreatorBuilder = new AlertDialog.Builder(this);
 		userCreator = userCreatorBuilder.setTitle("创建一个新用户")
-				.setIcon(R.drawable.logo_48).setView(layout).create();
+				.setIcon(R.drawable.app_ico_48).setView(layout).create();
 		userCreator.setCancelable(isCancelable);
 		if (!isCancelable)
 			B_cancel.setVisibility(View.GONE);
