@@ -121,10 +121,6 @@ public class BgMusic extends Service {
 
 	public boolean isAppOnForeground() {
 
-		// if (!((KeyguardManager) this.getSystemService(KEYGUARD_SERVICE))
-		// .inKeyguardRestrictedInputMode())
-		// return false;
-
 		// Returns a list of application processes that are running on the
 		// device
 		List<RunningAppProcessInfo> appProcesses = activityManager
@@ -236,6 +232,7 @@ public class BgMusic extends Service {
 				try {
 					while (isRunning) {
 						if (isScreenOn)
+							msg = bgHandler.obtainMessage();
 							if (isAppOnForeground()) {
 								msg.arg1 = BGHandler.PLAY;
 								bgHandler.sendMessage(msg);
@@ -257,8 +254,10 @@ public class BgMusic extends Service {
 	@Override
 	public void onDestroy() {
 		// Log.d(TAG, "--onDestroy--");
-		player.release();
+		
 		isRunning = false;
+		bgHandler.removeCallbacksAndMessages(null);
+		player.release();
 		this.unregisterReceiver(receiverScreen);
 
 	}

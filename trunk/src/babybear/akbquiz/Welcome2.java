@@ -50,7 +50,7 @@ public class Welcome2 extends Activity {
 			public void run() {
 				logo();
 			}
-		}, anim.getDuration());
+		}, 3000);
         
         anim.startNow();
     }
@@ -74,20 +74,18 @@ public class Welcome2 extends Activity {
         anim2.setFillAfter(true);  //设置动画的最后一帧是保持在View上面  
         text.setAnimation(anim2);
         
-        new Handler().postDelayed(new Runnable() {
-			public void run() {
-				logo_fadeout();
-			}
-		}, anim2.getDuration());
         anim2.startNow();
-        
         ImageView smalltext=(ImageView)findViewById(R.id.smalltext);
         Animation anim3 = AnimationUtils.loadAnimation(this, R.anim.logo_smalltext);
         anim3.setFillEnabled(true); //启动Fill保持  
         anim3.setFillAfter(true);  //设置动画的最后一帧是保持在View上面  
         smalltext.setAnimation(anim3);
         anim3.startNow();
-        
+        new Handler().postDelayed(new Runnable() {
+			public void run() {
+				logo_fadeout();
+			}
+		}, anim3.getDuration()+2000);
         
         
     }
@@ -97,13 +95,14 @@ public class Welcome2 extends Activity {
         Animation anim3 = AnimationUtils.loadAnimation(this, R.anim.wait_fade_out);
         anim3.setFillEnabled(true); //启动Fill保持  
         anim3.setFillAfter(true);  //设置动画的最后一帧是保持在View上面  
+       
+        layout.setAnimation(anim3);
+        anim3.startNow();
         new Handler().postDelayed(new Runnable() {
 			public void run() {
 				pregame();
 			}
-		}, anim3.getDuration());
-        layout.setAnimation(anim3);
-        anim3.startNow();
+		}, anim3.getDuration()+3000);
     }
     void pregame(){
     	setContentView(R.layout.activity_welcome);
