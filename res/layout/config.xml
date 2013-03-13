@@ -8,9 +8,13 @@
     android:inAnimation="@android:anim/slide_in_left"
     android:outAnimation="@android:anim/slide_out_right"
     >
+    <ScrollView
+	        android:id="@+id/scrollView1"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content" >
     <LinearLayout
 	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
+	    android:layout_height="wrap_content"
 	    android:orientation="vertical" >
 	
 	
@@ -183,29 +187,123 @@
 	
 	        
 	    </LinearLayout>
-	
 
-	    <Button
-	        android:id="@+id/config_playlist"
+	    <TextView
+	        android:id="@+id/textView1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginTop="20dp"
+	        android:text="@string/config_bgm"
+	        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+	    <LinearLayout
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
-	        android:layout_margin="20dp"
-	        android:text="@string/config_bgm_custom" />
+	        android:layout_marginLeft="10dp"
+	        android:layout_marginRight="10dp" >
+
+	        <Button
+	            android:id="@+id/config_loopmode"
+	            android:layout_width="0dp"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            android:text="@string/config_loop" />
+
+	        <Button
+	            android:id="@+id/config_playlist"
+	            android:layout_width="0dp"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            android:text="@string/config_bgm_custom" />
+
+	    </LinearLayout>
+
+	    <Button
+	        android:id="@+id/config_quiz_submit"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="10dp"
+	        android:layout_marginRight="10dp"
+	        android:layout_marginTop="10dp"
+	        android:text="@string/config_quiz_submit" />
+
+	    <LinearLayout
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="10dp"
+	        android:layout_marginRight="10dp" >
+
+	        <Button
+	            android:id="@+id/config_ranking"
+	            android:layout_width="0dp"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            android:text="@string/config_ranking" />
+
+	        <Button
+	            android:id="@+id/config_weibo"
+	            android:layout_width="0dp"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            android:text="@string/weibo_linkto" />
+	    </LinearLayout>
+
+	    <LinearLayout
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginBottom="10dp"
+	        android:layout_marginLeft="10dp"
+	        android:layout_marginRight="10dp" >
+
+	        <Button
+	            android:id="@+id/config_update"
+	            android:layout_width="0dp"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="1"
+	            android:text="@string/config_update" />
+	    </LinearLayout>
+		
+	    <Button
+	        android:id="@+id/config_back"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_marginBottom="20dp"
+	        android:layout_marginLeft="50dp"
+	        android:layout_marginRight="50dp"
+	        android:layout_marginTop="20dp"
+	        android:text="@string/back" />
+
+	    
+
+
+	    
 		
 	</LinearLayout>
-	
+	</ScrollView>
     <LinearLayout
         android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
 	    android:orientation="vertical" >
         
-        <Button
-            android:id="@+id/config_playlist_add"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_margin="20dp"
-	        android:text="@string/config_bgm_add" />
-
+        
+		<LinearLayout 
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:orientation="horizontal">
+		    <Button
+	            android:id="@+id/config_playlist_add"
+		        android:layout_width="0dp"
+		        android:layout_height="wrap_content"
+		        android:layout_weight="1"
+		        android:text="@string/config_bgm_add" />
+		    
+		    <Button
+	            android:id="@+id/config_playlist_back"
+		        android:layout_width="0dp"
+		        android:layout_height="wrap_content"
+		        android:layout_weight="1"
+		        android:text="@string/back" />
+		</LinearLayout>
 
         <ListView
             android:id="@+id/playlist"
@@ -221,6 +319,25 @@
         android:layout_height="fill_parent"
         android:orientation="vertical" >
         
+        <LinearLayout 
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:orientation="horizontal">
+		    <Button
+	            android:id="@+id/config_playlist_remove"
+		        android:layout_width="0dp"
+		        android:layout_height="wrap_content"
+		        android:layout_weight="1"
+		        android:text="@string/config_bgm_remove" />
+		    
+		    <Button
+	            android:id="@+id/config_musiclist_back"
+		        android:layout_width="0dp"
+		        android:layout_height="wrap_content"
+		        android:layout_weight="1"
+		        android:text="@string/back" />
+		</LinearLayout>
+        
 		<TextView 
 		    android:id="@+id/current"
 		    android:layout_width="fill_parent"
@@ -228,12 +345,7 @@
 		    android:textAppearance="?android:attr/textAppearanceMedium"
 		    android:text=""/>
 		
-		<Button
-            android:id="@+id/config_playlist_remove"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_margin="20dp"
-	        android:text="@string/config_bgm_remove" />
+
 		
         <ListView
             android:id="@+id/musiclist"

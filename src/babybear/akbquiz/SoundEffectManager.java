@@ -10,7 +10,7 @@ public class SoundEffectManager{
 		sound_wrong,
 		sound_click;
 	private boolean isOn=true;
-	private static float volume = 0.5f,//0.0~1.0
+	private static float volume = 0.8f,//0.0~1.0
 		rate = 1.0f ;//0.5~2.0
 	
 	
@@ -35,11 +35,11 @@ public class SoundEffectManager{
 		volume=vol;
 	}
 	void setVolume(int vol){
-		volume=((float)vol/15)*0.5f;
+		volume=((float)vol/15)*0.8f;
 	}
 	void setVolumeUp(){
 		volume+=0.1f;
-		if(volume>0.5f)volume=0.5f;
+		if(volume>0.8f)volume=0.8f;
 	}
 	void setVolumeDown(){
 		volume-=0.2f;

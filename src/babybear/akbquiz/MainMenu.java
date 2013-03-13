@@ -20,14 +20,12 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.AssetManager;
 import android.os.Bundle;
-import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -37,14 +35,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import com.weibo.sdk.android.Oauth2AccessToken;
+import com.weibo.sdk.android.Weibo;
+import com.weibo.sdk.android.keep.AccessTokenKeeper;
+import com.weibo.sdk.android.util.Utility;
+
 public class MainMenu extends Activity {
 
 	private static final String databasePath = "/data/data/babybear.akbquiz/databases/AKBQuiz.db";
-
 	public static final int REQUEST_CONFIG = 0, REQUEST_START_NORMAL = 1,
 			REQUEST_START_CHALLENGE = 2;
-
 	public static final String key_playmode = "playmode";
+	
+	private static final String WEIBO_KEY="3909609063";
+	private static final String SINA_URL="http://www.sina.com";
 
 	static Database db = null;
 	static SoundEffectManager se;
@@ -56,15 +60,16 @@ public class MainMenu extends Activity {
 	static int whichIsChoose = 0;
 	static EditText T_username = null;
 	static AlertDialog userCreator = null;
-
 	static ListView userListView = null;
 	static ArrayAdapter<ContentValues> userListAdapter = null;
 	static ViewFlipper menu_flipper = null;
 
 	int config_vol_bg, config_vol_sound;
 	boolean config_sw_bg, config_sw_sound, config_sw_vir;
-
-	SharedPreferences sp_cfg;
+	
+	static Weibo weibo;
+	static Oauth2AccessToken weiboAccessToken;
+	private SharedPreferences sp_cfg;
 
 	void setCurrent(int currentUserId) {
 		db.setCurrentUser(currentUserId);
@@ -78,21 +83,24 @@ public class MainMenu extends Activity {
 		// ((TextView) findViewById(R.id.username)).setText(username);
 
 	}
+	
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_menu);
 
+		//初始化Weibo对象
+		weibo = Weibo.getInstance(WEIBO_KEY, SINA_URL);
+		weiboAccessToken = AccessTokenKeeper.readAccessToken(this);
+        if (weiboAccessToken.isSessionValid()) {
+            Weibo.isWifi = Utility.isWifi(this);
+        }
+		//-----
+		
 		db = new Database(this, Database.DBName_cfg);
 		se = new SoundEffectManager(this);
 		sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
 
-		// config_vol_bg=sp_cfg.getInt(Database.ColName_vol_bg, 10);
-		// config_vol_sound=sp_cfg.getInt(Database.ColName_vol_sound, 10);
-		// config_sw_bg=sp_cfg.getBoolean(Database.ColName_switch_bg, true);
-		// config_sw_sound=;
-		// config_sw_vir=sp_cfg.getBoolean(Database.ColName_switch_vibration,
-		// true);
 
 		menu_flipper = (ViewFlipper) findViewById(R.id.menu_flipper);
 		userListView = (ListView) findViewById(R.id.listview_user);

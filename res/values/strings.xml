@@ -7,7 +7,6 @@
         AKB48 SKE48 NMB48 HKT48 SND48 JKT48 SNH48 乃木板46 等都是大型偶像团体的名称，名称及其商标归各自运营公司所有。
 		本游戏（应用）中使用到的题目都是网上收集，作者本人并不为之负任何责任。</string>
     
-    
     <string name="config_bgm">背景音乐</string>
     <string name="config_sound">音效</string>
     <string name="config_volume">音量</string>
@@ -16,8 +15,34 @@
     <string name="config_bgm_remove">删除</string>
     <string name="config_audio">音频设置</string>
     <string name="config_vibration">振动</string>
+    <string name="config_ranking">给应用评分</string>
+    <string name="config_update">检查更新</string>
+    <string name="config_single">单曲循环</string>
+    <string name="config_loop">全曲循环</string>
+    <string name="config_random">随机</string>
+    <string name="config_quiz_submit">我要出题</string>
     <string name="on">开</string>
     <string name="off">关</string>
+    <string name="back">返回</string>
+        
+    <string name="chooser_diffi">难度</string>
+    <string name="collect_editor">作者</string>
+    <string name="collect_question">问题</string>
+    <string name="collect_answer">正确答案</string>
+    <string name="collect_wrong1">备选答案1</string>
+    <string name="collect_wrong2">备选答案2</string>
+    <string name="collect_wrong3">备选答案3</string>
+    <string name="collect_groups">相关团队</string>
+    <string name="collect_submit">提交</string>
+        
+    <string name="groupname_akb48">AKB48</string>
+    <string name="groupname_ske48">SKE48</string>
+    <string name="groupname_nmb48">NMB48</string>
+    <string name="groupname_hkt48">HKT48</string>
+    <string name="groupname_ngzk46">乃木板46</string>
+    <string name="groupname_sdn48">SDN48</string>
+    <string name="groupname_jkt48">JKT48</string>
+    <string name="groupname_snh48">SNH48</string>
     
     <string name="Type_in_username">请输入您的用户名…</string>    
     
@@ -33,22 +58,19 @@
     <string name="summary_mean_time">平均每题用时：</string>
     <string name="summary_rate">正确率：</string>
     <string name="summary_sum">答题：</string>
+    <string name="summary_share">分享</string>
     
-    <string name="groupname_akb48">TODO</string>
-    <string name="groupname_ske48">SKE48</string>
-    <string name="groupname_nmb48">NMB48</string>
-    <string name="groupname_hkt48">HKT48</string>
-    <string name="groupname_ngzk46">乃木板46</string>
-    <string name="groupname_sdn48">SDN48</string>
-    <string name="groupname_jkt48">JKT48</string>
-    <string name="groupname_snh48">SNH48</string>
-    
-    <string name="chooser_diffi">难度</string>
-    
+    <string name="weibo_template">我在#AKBQuiz#答了%1$d个题，%2$d正%3$d误，用时%4$d,正确率%5$d%%。</string>
+	<string name="weibo_update_success">微博发布成功</string>
+	<string name="weibo_update_fail">微博发布失败</string>
+	<string name="weibo_linkto">微博授权</string>
+    <string name="weibo_linked">取消微博授权</string>
+	
     <string name="separator">" - "</string>
     <string name="click_to_start">点击屏幕开始</string>
     <string name="fanhuashe">繁花社</string>
     <string name="wrong">错误</string>
     <string name="right">正确</string>
+
 
 </resources>
