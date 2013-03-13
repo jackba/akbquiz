@@ -231,15 +231,13 @@ public class BgMusic extends Service {
 				Message msg = new Message();
 				try {
 					while (isRunning) {
-						if (isScreenOn)
-							msg = bgHandler.obtainMessage();
-							if (isAppOnForeground()) {
-								msg.arg1 = BGHandler.PLAY;
-								bgHandler.sendMessage(msg);
-							} else {
-								msg.arg1 = BGHandler.PAUSE;
-								bgHandler.sendMessage(msg);
-							}
+						msg = bgHandler.obtainMessage();
+						if (isScreenOn&&isAppOnForeground()) {
+							msg.arg1 = BGHandler.PLAY;
+						} else {
+							msg.arg1 = BGHandler.PAUSE;
+						}
+						bgHandler.sendMessage(msg);
 						Thread.sleep(1000);
 					}
 				} catch (Exception e) {
@@ -280,7 +278,7 @@ public class BgMusic extends Service {
 		@Override
 		public void handleMessage(Message msg) {
 			BgMusic theService = mService.get();
-			Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : " + msg.what);
+			//Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : " + msg.what);
 			switch (msg.arg1) {
 			case PAUSE:
 				if (theService.player.isPlaying())

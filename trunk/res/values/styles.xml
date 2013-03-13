@@ -1,5 +1,9 @@
 <resources>
 
-    <style name="AppTheme" parent="android:Theme.Light" />
-
+    <style name="AppTheme" parent="android:Theme.Light" />      
+    <style name="difficulty" parent="@android:style/Widget.RatingBar">    
+        <item name="android:progressDrawable">@drawable/difficulty</item>    
+        <item name="android:minHeight">15dip</item>    
+        <item name="android:maxHeight">15dip</item>    
+    </style>  
 </resources>

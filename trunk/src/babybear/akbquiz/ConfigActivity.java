@@ -1,19 +1,42 @@
 package babybear.akbquiz;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -32,9 +55,20 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.ViewFlipper;
 
-public class ConfigActivity extends Activity {
+import com.weibo.sdk.android.Oauth2AccessToken;
+import com.weibo.sdk.android.WeiboAuthListener;
+import com.weibo.sdk.android.WeiboDialogError;
+import com.weibo.sdk.android.WeiboException;
+import com.weibo.sdk.android.keep.AccessTokenKeeper;
+import com.weibo.sdk.android.sso.SsoHandler;
 
+public class ConfigActivity extends Activity {
+	final static String TAG = "ConfigActivity";
 	final static String PreferenceName_cfg = "config";
+	final static String SERVER_URL = "http://fanhuashe-app.stor.sinaapp.com/";
+	final static String APP_VER = "appver.json";
+	final static String DATABASE_VER = "databasever.json";
+	final static String APP_SAVENAME = "/download/akbquiz.apk";
 	static Music defaultMusic = null;
 
 	int onModifing = -1;
@@ -42,11 +76,19 @@ public class ConfigActivity extends Activity {
 	ViewFlipper cfgflipper;
 	SharedPreferences sp_cfg;
 	Editor cfgEditor;
+	Button weibo_btn;
 
 	List<Music> playlistList, musicList;
 	ListView playlistView;
 
 	boolean isPlaylistChanged = false;
+	SsoHandler weiboSsoHandler;
+
+	int newVerCode, verCode;
+	String newVerName, verName, updateURL;
+
+	ProgressDialog pBar;
+	private Handler handler = new Handler();
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -71,7 +113,40 @@ public class ConfigActivity extends Activity {
 		defaultMusic = defaultbg;
 
 		init();
+		weiboInit();
 
+	}
+
+	private void weiboInit() {
+		weibo_btn = (Button) findViewById(R.id.config_weibo);
+		weibo_btn.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (!MainMenu.weiboAccessToken.isSessionValid()) {
+					weiboSsoHandler = new SsoHandler(ConfigActivity.this,
+							MainMenu.weibo);
+					weiboSsoHandler.authorize(new AuthDialogListener());
+				} else {
+					AccessTokenKeeper.clear(ConfigActivity.this);
+					MainMenu.weiboAccessToken = AccessTokenKeeper
+							.readAccessToken(ConfigActivity.this);
+					weibo_btn.setText(ConfigActivity.this
+							.getString(R.string.weibo_linkto));
+				}
+			}
+		});
+		if (MainMenu.weiboAccessToken.isSessionValid()) {
+			weibo_btn.setText(this.getString(R.string.weibo_linked));
+		}
+
+	}
+
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if (weiboSsoHandler != null) {
+			weiboSsoHandler.authorizeCallBack(requestCode, resultCode, data);
+		}
 	}
 
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -80,7 +155,6 @@ public class ConfigActivity extends Activity {
 			if (cfgflipper.getDisplayedChild() == 0) {
 				cfgEditor.commit();
 				finish();
-
 			} else {
 				cfgflipper.showPrevious();
 				return false;
@@ -99,7 +173,7 @@ public class ConfigActivity extends Activity {
 		SeekBar bgm_vol = (SeekBar) findViewById(R.id.bgm_volume);
 		SeekBar sound_vol = (SeekBar) findViewById(R.id.sound_volume);
 		Button config_playlist = (Button) findViewById(R.id.config_playlist);
-
+		
 		bgm_toggle.setChecked(sp_cfg.getBoolean(Database.ColName_switch_bg,
 				true));
 		sound_toggle.setChecked(sp_cfg.getBoolean(
@@ -108,8 +182,10 @@ public class ConfigActivity extends Activity {
 				Database.ColName_switch_vibration, true));
 		bgm_vol.setProgress(sp_cfg.getInt(Database.ColName_vol_bg, 10));
 		sound_vol.setProgress(sp_cfg.getInt(Database.ColName_vol_sound, 10));
+		
+		//TODO load loop mode
 
-		OnClickListener l_switch = new OnClickListener() {
+		OnClickListener clickListener = new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
@@ -124,12 +200,14 @@ public class ConfigActivity extends Activity {
 					break;
 				case R.id.sound_switch:
 					boolean isSoundOn = ((ToggleButton) v).isChecked();
-					cfgEditor.putBoolean(Database.ColName_switch_bg, isSoundOn);
+					cfgEditor.putBoolean(Database.ColName_switch_sound,
+							isSoundOn);
 					MainMenu.se.setSwitch(isSoundOn);
 					break;
 				case R.id.config_vibration_switch:
 					boolean isVibOn = ((ToggleButton) v).isChecked();
-					cfgEditor.putBoolean(Database.ColName_switch_bg, isVibOn);
+					cfgEditor.putBoolean(Database.ColName_switch_vibration,
+							isVibOn);
 					break;
 				case R.id.config_playlist:
 					if (Environment.MEDIA_MOUNTED.equals(Environment
@@ -145,16 +223,62 @@ public class ConfigActivity extends Activity {
 								Toast.LENGTH_SHORT).show();
 					}
 					break;
+				case R.id.config_ranking:
+					Intent intent = new Intent(Intent.ACTION_VIEW);
+					intent.setData(Uri.parse("market://details?id="
+							+ getPackageName()));
+					startActivity(intent);
+					break;
+
+				case R.id.config_back:
+					cfgEditor.commit();
+					finish();
+					break;
+
+				case R.id.config_musiclist_back:
+				case R.id.config_playlist_back:
+					cfgflipper.showPrevious();
+					break;
+
+				case R.id.config_update:
+					verCode = getVerCode(ConfigActivity.this);
+					verName = getVerName(ConfigActivity.this);
+					if (getServerVer()) {
+						if (newVerCode > verCode) {
+							doNewVersionUpdate(); // 更新新版本
+						} else {
+							notNewVersionShow(); // 提示当前为最新版本
+						}
+					}
+
+					break;
+				case R.id.config_loopmode:
+					changeLoopMode();
+					break;
+				case R.id.config_quiz_submit:
+					Intent intent1 = new Intent(ConfigActivity.this,CollectQuiz.class);
+					startActivity(intent1);
 				}
 			}
 
+
 		};
 
-		bgm_toggle.setOnClickListener(l_switch);
-		sound_toggle.setOnClickListener(l_switch);
-		vibration_toggle.setOnClickListener(l_switch);
-		config_playlist.setOnClickListener(l_switch);
+		bgm_toggle.setOnClickListener(clickListener);
+		sound_toggle.setOnClickListener(clickListener);
+		vibration_toggle.setOnClickListener(clickListener);
+		config_playlist.setOnClickListener(clickListener);
 
+		((Button) findViewById(R.id.config_back)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_musiclist_back))
+				.setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_playlist_back))
+				.setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_update))
+				.setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_quiz_submit))
+				.setOnClickListener(clickListener);
+		
 		OnSeekBarChangeListener l_seekbar = new OnSeekBarChangeListener() {
 
 			@Override
@@ -187,6 +311,197 @@ public class ConfigActivity extends Activity {
 		};
 		bgm_vol.setOnSeekBarChangeListener(l_seekbar);
 		sound_vol.setOnSeekBarChangeListener(l_seekbar);
+	}
+
+	private void doNewVersionUpdate() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("当前版本:");
+		sb.append(verName);
+		sb.append(" Code:");
+		sb.append(verCode);
+		sb.append(", 发现新版本:");
+		sb.append(newVerName);
+		sb.append(" Code:");
+		sb.append(newVerCode);
+		sb.append(", 是否更新?");
+		Dialog dialog = new AlertDialog.Builder(this)
+				.setTitle("软件更新")
+				.setMessage(sb.toString())
+				// 设置内容
+				.setPositiveButton("更新",// 设置确定按钮
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								pBar = new ProgressDialog(ConfigActivity.this);
+								pBar.setTitle("正在下载");
+								pBar.setMessage("请稍候...");
+								pBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+								pBar.setMax(100);
+								downFile(updateURL);
+							}
+						})
+				.setNegativeButton("暂不更新",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int whichButton) {
+								
+							}
+						}).create();// 创建
+		// 显示对话框
+		dialog.show();
+	}
+
+	private void notNewVersionShow() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("当前版本:");
+		sb.append(verName);
+		sb.append(" Code:");
+		sb.append(verCode);
+		sb.append(",\n已是最新版,无需更新!");
+		Dialog dialog = new AlertDialog.Builder(this).setTitle("软件更新")
+				.setMessage(sb.toString())// 设置内容
+				.setPositiveButton("确定",// 设置确定按钮
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								
+							}
+						}).create();
+		// 显示对话框
+		dialog.show();
+	}
+
+	void downFile(final String url) {
+		pBar.show();
+		new Thread() {
+
+			private long length;
+			private long count = 0;
+			public void run() {
+				HttpClient client = new DefaultHttpClient();
+				//HttpGet get = ;
+				HttpResponse response;
+				try {
+					response = client.execute(new HttpGet(url));
+					HttpEntity entity = response.getEntity();
+					length = entity.getContentLength();
+					InputStream is = entity.getContent();
+					FileOutputStream fileOutputStream = null;
+					if (is != null) {
+						File file = new File(
+								Environment.getExternalStorageDirectory(),
+								APP_SAVENAME);
+						fileOutputStream = new FileOutputStream(file);
+						byte[] buf = new byte[1024];
+						int ch = -1;
+						count = 0;
+						while ((ch = is.read(buf)) != -1) {
+							fileOutputStream.write(buf, 0, ch);
+							count += ch;
+							handler.post(new Runnable() {
+								public void run() {
+									pBar.setProgress((int) (count*100/length));
+								}
+							});
+						}
+					}
+					fileOutputStream.flush();
+					if (fileOutputStream != null) {
+						fileOutputStream.close();
+					}
+					{
+						handler.post(new Runnable() {
+							public void run() {
+								pBar.cancel();
+								update();
+							}
+						});
+					}
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}.start();
+	}
+
+	void update() {
+		Intent intent = new Intent(Intent.ACTION_VIEW);
+		intent.setDataAndType(Uri.fromFile(new File(Environment
+				.getExternalStorageDirectory(), APP_SAVENAME)),
+				"application/vnd.android.package-archive");
+		startActivity(intent);
+	}
+
+	public int getVerCode(Context context) {
+		int verCode = -1;
+		try {
+			verCode = context.getPackageManager()
+					.getPackageInfo(this.getPackageName(), 0).versionCode;
+		} catch (NameNotFoundException e) {
+			Log.e(TAG, e.getMessage());
+		}
+		return verCode;
+	}
+
+	public String getVerName(Context context) {
+		String verName = "";
+		try {
+			verName = context.getPackageManager()
+					.getPackageInfo(this.getPackageName(), 0).versionName;
+		} catch (NameNotFoundException e) {
+			Log.e(TAG, e.getMessage());
+		}
+		return verName;
+	}
+
+	private boolean getServerVer() {
+		try {
+			String verjson = getURLContent(SERVER_URL + APP_VER);
+			JSONArray array = new JSONArray(verjson);
+			if (array.length() > 0) {
+				JSONObject obj = array.getJSONObject(0);
+				try {
+					newVerCode = Integer.parseInt(obj.getString("verCode"));
+					newVerName = obj.getString("verName");
+					updateURL = obj.getString("apkurl");
+				} catch (Exception e) {
+					newVerCode = -1;
+					newVerName = "";
+					return false;
+				}
+			}
+		} catch (Exception e) {
+			Log.e(TAG, e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	public String getURLContent(String url) throws Exception {
+		StringBuilder sb = new StringBuilder();
+
+		HttpClient client = new DefaultHttpClient();
+		HttpParams httpParams = client.getParams();
+		// 设置网络超时参数
+		HttpConnectionParams.setConnectionTimeout(httpParams, 3000);
+		HttpConnectionParams.setSoTimeout(httpParams, 5000);
+		HttpResponse response = client.execute(new HttpGet(url));
+		HttpEntity entity = response.getEntity();
+		if (entity != null) {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					entity.getContent(), "UTF-8"), 8192);
+
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line + "\n");
+			}
+			reader.close();
+		}
+		return sb.toString();
 	}
 
 	private void loadPlaylistEditor() {
@@ -364,6 +679,12 @@ public class ConfigActivity extends Activity {
 		}
 		cfgEditor.putString("playlist", arr.toString());
 	}
+	
+	private void changeLoopMode() {
+		// TODO Auto-generated method stub
+		
+	}
+	
 
 	private class PlaylistAdapter extends ArrayAdapter<Music> {
 		OnClickListener l;
@@ -405,6 +726,46 @@ public class ConfigActivity extends Activity {
 		long DURATION;
 		boolean isExist;
 		String TITLE, ARTIST, ALBUM, DATA;
+	}
+
+	class AuthDialogListener implements WeiboAuthListener {
+
+		@Override
+		public void onComplete(Bundle values) {
+			String token = values.getString("access_token");
+			String expires_in = values.getString("expires_in");
+			MainMenu.weiboAccessToken = new Oauth2AccessToken(token, expires_in);
+			if (MainMenu.weiboAccessToken.isSessionValid()) {
+
+				((Button) findViewById(R.id.config_weibo))
+						.setText(ConfigActivity.this
+								.getString(R.string.weibo_linked));
+				AccessTokenKeeper.keepAccessToken(ConfigActivity.this,
+						MainMenu.weiboAccessToken);
+				Toast.makeText(ConfigActivity.this, "认证成功", Toast.LENGTH_SHORT)
+						.show();
+			}
+		}
+
+		@Override
+		public void onError(WeiboDialogError e) {
+			Toast.makeText(getApplicationContext(),
+					"认证错误 : " + e.getMessage(), Toast.LENGTH_LONG).show();
+		}
+
+		@Override
+		public void onCancel() {
+			Toast.makeText(getApplicationContext(), "认证取消",
+					Toast.LENGTH_LONG).show();
+		}
+
+		@Override
+		public void onWeiboException(WeiboException e) {
+			Toast.makeText(getApplicationContext(),
+					"认证异常 : " + e.getMessage(), Toast.LENGTH_LONG)
+					.show();
+		}
+
 	}
 
 }
