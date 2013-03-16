@@ -32,6 +32,9 @@ public class Chooser extends Activity {
 		initWidget();
 
 	}
+	/**
+	 * 拉取数据
+	 */
 
 	private void initdata() {
 		SharedPreferences sp_quiz = getSharedPreferences(PreferenceName_Quiz,
@@ -51,7 +54,10 @@ public class Chooser extends Activity {
 				MainMenu.REQUEST_START_NORMAL);
 
 	}
-
+	
+	/**
+	 * 初始化界面
+	 */
 	private void initWidget() {
 
 		ToggleButton akb = (ToggleButton) findViewById(R.id.akb_toggle);
@@ -106,9 +112,9 @@ public class Chooser extends Activity {
 
 	}
 
-	
-
-
+	/**
+	 * 保存设置
+	 */
 	private void save() {
 		Editor e_quiz = getSharedPreferences(PreferenceName_Quiz,
 				Context.MODE_PRIVATE).edit();
@@ -126,6 +132,10 @@ public class Chooser extends Activity {
 		e_quiz.commit();
 	}
 
+	
+	/**
+	 * 本界面所有元素的OnClickListener
+	 */
 	OnClickListener l = new OnClickListener() {
 
 		@Override

@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -20,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -37,18 +41,24 @@ import android.widget.ViewFlipper;
 
 import com.weibo.sdk.android.Oauth2AccessToken;
 import com.weibo.sdk.android.Weibo;
+import com.weibo.sdk.android.WeiboAuthListener;
+import com.weibo.sdk.android.WeiboDialogError;
+import com.weibo.sdk.android.WeiboException;
+import com.weibo.sdk.android.api.UsersAPI;
 import com.weibo.sdk.android.keep.AccessTokenKeeper;
+import com.weibo.sdk.android.net.RequestListener;
+import com.weibo.sdk.android.sso.SsoHandler;
 import com.weibo.sdk.android.util.Utility;
 
 public class MainMenu extends Activity {
 
 	private static final String databasePath = "/data/data/babybear.akbquiz/databases/AKBQuiz.db";
 	public static final int REQUEST_CONFIG = 0, REQUEST_START_NORMAL = 1,
-			REQUEST_START_CHALLENGE = 2;
+			REQUEST_START_CHALLENGE = 2, REQUEST_AUTH_WEIBO = 100;
 	public static final String key_playmode = "playmode";
-	
-	private static final String WEIBO_KEY="3909609063";
-	private static final String SINA_URL="http://www.sina.com";
+
+	private static final String WEIBO_KEY = "3909609063";
+	private static final String SINA_URL = "http://www.sina.com";
 
 	static Database db = null;
 	static SoundEffectManager se;
@@ -60,18 +70,23 @@ public class MainMenu extends Activity {
 	static int whichIsChoose = 0;
 	static EditText T_username = null;
 	static AlertDialog userCreator = null;
+	// static Boolean isCreatorCancelable =false;
 	static ListView userListView = null;
 	static ArrayAdapter<ContentValues> userListAdapter = null;
 	static ViewFlipper menu_flipper = null;
 
 	int config_vol_bg, config_vol_sound;
 	boolean config_sw_bg, config_sw_sound, config_sw_vir;
-	
+
 	static Weibo weibo;
 	static Oauth2AccessToken weiboAccessToken;
+	private SsoHandler weiboSsoHandler;
+
 	private SharedPreferences sp_cfg;
 
-	void setCurrent(int currentUserId) {
+	private Handler handler = new Handler();
+
+	private void setCurrent(int currentUserId) {
 		db.setCurrentUser(currentUserId);
 		for (int i = 0; i < userList.size(); i++) {
 			if (userList.get(i).getAsInteger(Database.ColName_id) == currentUserId)
@@ -83,24 +98,22 @@ public class MainMenu extends Activity {
 		// ((TextView) findViewById(R.id.username)).setText(username);
 
 	}
-	
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_menu);
 
-		//初始化Weibo对象
+		// 初始化Weibo对象
 		weibo = Weibo.getInstance(WEIBO_KEY, SINA_URL);
 		weiboAccessToken = AccessTokenKeeper.readAccessToken(this);
-        if (weiboAccessToken.isSessionValid()) {
-            Weibo.isWifi = Utility.isWifi(this);
-        }
-		//-----
-		
+		if (weiboAccessToken.isSessionValid()) {
+			Weibo.isWifi = Utility.isWifi(this);
+		}
+		// -----
+
 		db = new Database(this, Database.DBName_cfg);
 		se = new SoundEffectManager(this);
 		sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
-
 
 		menu_flipper = (ViewFlipper) findViewById(R.id.menu_flipper);
 		userListView = (ListView) findViewById(R.id.listview_user);
@@ -192,14 +205,15 @@ public class MainMenu extends Activity {
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		ContentValues currUser = userList.get(currentUserInList);
-		ContentValues userdata = new ContentValues();
-		userdata.put(Database.ColName_id,
-				currUser.getAsInteger(Database.ColName_id));
+		super.onActivityResult(requestCode, resultCode, data);
 
 		switch (requestCode) {
 		case REQUEST_START_NORMAL:
 			if (resultCode == Activity.RESULT_OK) {
+				ContentValues currUser = userList.get(currentUserInList);
+				ContentValues userdata = new ContentValues();
+				userdata.put(Database.ColName_id,
+						currUser.getAsInteger(Database.ColName_id));
 				int right = data.getIntExtra("right", 0)
 						+ currUser
 								.getAsInteger(Database.ColName_counter_correct);
@@ -216,9 +230,11 @@ public class MainMenu extends Activity {
 				userList.get(currentUserInList).putAll(userdata);
 			}
 			break;
-		case REQUEST_CONFIG:
-			// TODO
-
+		case REQUEST_AUTH_WEIBO:
+			if (weiboSsoHandler != null) {
+				weiboSsoHandler
+						.authorizeCallBack(requestCode, resultCode, data);
+			}
 			break;
 		}
 
@@ -270,13 +286,19 @@ public class MainMenu extends Activity {
 	 * @param isCancelable
 	 *            是否可以取消
 	 */
-	void createUser(boolean isCancelable) {
+	protected void createUser(boolean isCancelable) {
+		// isCreatorCancelable = isCancelable;
 		OnClickListener l_userCreater = new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
-				if (arg0.getId() == R.id.ok) {
-					String userin_lower, user_lower;
+				switch (arg0.getId()) {
+				case R.id.cancel:
+					userCreator.cancel();
+				
+				case R.id.ok:
+					String userin_lower,
+					user_lower;
 
 					String t_username = T_username.getText().toString();
 					if (t_username.equals("")) {
@@ -312,8 +334,18 @@ public class MainMenu extends Activity {
 					setCurrent(newUserId);
 
 					se.setSwitch(true);
+
+					userCreator.cancel();
+					break;
+
+				case R.id.weibo_login:
+					weiboSsoHandler = new SsoHandler(MainMenu.this,
+							MainMenu.weibo);
+					weiboSsoHandler.authorize(REQUEST_AUTH_WEIBO,
+							new AuthDialogListener());
+					break;
+
 				}
-				userCreator.cancel();
 
 			}
 
@@ -324,10 +356,13 @@ public class MainMenu extends Activity {
 				R.layout.username, null);
 
 		T_username = (EditText) layout.findViewById(R.id.username);
-		Button B_ok = (Button) layout.findViewById(R.id.ok), B_cancel = (Button) layout
-				.findViewById(R.id.cancel);
+		Button B_ok = (Button) layout.findViewById(R.id.ok);
+		Button B_cancel = (Button) layout.findViewById(R.id.cancel);
 		B_ok.setOnClickListener(l_userCreater);
 		B_cancel.setOnClickListener(l_userCreater);
+
+		Button weiboLoginBtn = (Button) layout.findViewById(R.id.weibo_login);
+		weiboLoginBtn.setOnClickListener(l_userCreater);
 
 		AlertDialog.Builder userCreatorBuilder = new AlertDialog.Builder(this);
 		userCreator = userCreatorBuilder.setTitle("创建一个新用户")
@@ -338,14 +373,14 @@ public class MainMenu extends Activity {
 		userCreator.show();
 	}
 
-	void showUserList() {
+	private void showUserList() {
 		menu_flipper.showNext();
 	}
 
 	/**
 	 * 显示当前用户的游戏记录
 	 */
-	void showRecord() {
+	private void showRecord() {
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.record,
 				null);
@@ -548,7 +583,7 @@ public class MainMenu extends Activity {
 	/**
 	 * 首次运行
 	 */
-	void firstRun() {
+	private void firstRun() {
 
 		Editor cfg_Editor = sp_cfg.edit();
 		cfg_Editor.putBoolean(Database.ColName_switch_bg, true);
@@ -593,6 +628,135 @@ public class MainMenu extends Activity {
 		}
 
 		createUser(false);
+	}
+
+	/**
+	 * 新浪微博认证的回调对象
+	 * 
+	 * @author BabyBeaR
+	 * 
+	 */
+	class AuthDialogListener implements WeiboAuthListener {
+
+		@Override
+		public void onComplete(Bundle values) {
+			String token = values.getString("access_token");
+			String expires_in = values.getString("expires_in");
+			MainMenu.weiboAccessToken = new Oauth2AccessToken(token, expires_in);
+			if (MainMenu.weiboAccessToken.isSessionValid()) {
+				AccessTokenKeeper.keepAccessToken(MainMenu.this,
+						MainMenu.weiboAccessToken);
+				Toast.makeText(MainMenu.this, "认证成功", Toast.LENGTH_SHORT)
+						.show();
+
+				UsersAPI user = new UsersAPI(MainMenu.weiboAccessToken);
+
+				RequestListener listener = new RequestListener() {
+
+					@Override
+					public void onComplete(String response) {
+						final String json = response;
+
+						AccessTokenKeeper.keepUserinfo(MainMenu.this, json);
+						try {
+							JSONObject info = new JSONObject(json);
+							final String t_username = info
+									.getString("screen_name");
+							final String userIdentity = Database.IDTag_weibo
+									+ info.getString("idstr");
+							if (userList != null) {
+								String user;
+								for (int i = 0; i < userList.size(); i++) {
+									user = userList.get(i).getAsString(
+											Database.ColName_user_identity);
+									if (user == null)
+										continue;
+									if (userIdentity.equals(user)) {
+										handler.post(new Runnable() {
+
+											@Override
+											public void run() {
+												Toast.makeText(MainMenu.this,
+														"已存在相同的用户",
+														Toast.LENGTH_SHORT)
+														.show();
+											}
+										});
+
+										return;
+									}
+								}
+							}
+							handler.post(new Runnable() {
+								@Override
+								public void run() {
+									int newUserId = (int) db.addUser(
+											t_username, userIdentity);
+									refreshUserlist();
+									setCurrent(newUserId);
+									userCreator.dismiss();
+
+								}
+
+							});
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+
+					@Override
+					public void onIOException(IOException e) {
+						handler.post(new Runnable() {
+
+							@Override
+							public void run() {
+								Toast.makeText(MainMenu.this, "获取用户信息失败",
+										Toast.LENGTH_SHORT).show();
+							}
+
+						});
+
+					}
+
+					@Override
+					public void onError(WeiboException e) {
+						handler.post(new Runnable() {
+
+							@Override
+							public void run() {
+								Toast.makeText(MainMenu.this, "获取用户信息失败",
+										Toast.LENGTH_SHORT).show();
+							}
+
+						});
+
+					}
+
+				};
+
+				user.show(Long.decode(values.getString("uid")), listener);
+
+			}
+		}
+
+		@Override
+		public void onError(WeiboDialogError e) {
+			Toast.makeText(getApplicationContext(), "认证错误 : " + e.getMessage(),
+					Toast.LENGTH_LONG).show();
+		}
+
+		@Override
+		public void onCancel() {
+			Toast.makeText(getApplicationContext(), "认证取消", Toast.LENGTH_LONG)
+					.show();
+		}
+
+		@Override
+		public void onWeiboException(WeiboException e) {
+			Toast.makeText(getApplicationContext(), "认证异常 : " + e.getMessage(),
+					Toast.LENGTH_LONG).show();
+		}
+
 	}
 
 }

@@ -24,6 +24,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:ems="10"
+        android:hint="@string/collect_editor_hint"
         android:imeOptions="actionNext"
         android:inputType="textPersonName"
         android:maxLength="32" />
@@ -44,7 +45,8 @@
        android:layout_marginLeft="20dp"
        android:layout_marginRight="20dp"
        android:ems="10"
-       android:imeOptions="actionDone"
+       android:hint="@string/collect_question_hint"
+       android:imeOptions="actionNext"
        android:inputType="textCapSentences|textAutoCorrect|textAutoComplete"
        android:maxLength="200"
        android:minLines="2" >
@@ -67,7 +69,8 @@
        android:layout_marginLeft="20dp"
        android:layout_marginRight="20dp"
        android:ems="10"
-       android:imeOptions="actionDone"
+       android:hint="@string/collect_answer_hint"
+       android:imeOptions="actionNext"
        android:inputType="textCapSentences|textAutoCorrect|textAutoComplete"
        android:maxLength="50" >
 
@@ -89,7 +92,8 @@
        android:layout_marginLeft="20dp"
        android:layout_marginRight="20dp"
        android:ems="10"
-       android:imeOptions="actionDone"
+       android:hint="@string/collect_wrong_hint"
+       android:imeOptions="actionNext"
        android:inputType="textCapSentences|textAutoCorrect|textAutoComplete"
        android:maxLength="50" >
 
@@ -111,7 +115,8 @@
        android:layout_marginLeft="20dp"
        android:layout_marginRight="20dp"
        android:ems="10"
-       android:imeOptions="actionDone"
+       android:hint="@string/collect_wrong_hint"
+       android:imeOptions="actionNext"
        android:inputType="textCapSentences|textAutoCorrect|textAutoComplete"
        android:maxLength="50" >
 
@@ -133,6 +138,7 @@
        android:layout_marginLeft="20dp"
        android:layout_marginRight="20dp"
        android:ems="10"
+       android:hint="@string/collect_wrong_hint"
        android:imeOptions="actionDone"
        android:inputType="textCapSentences|textAutoCorrect|textAutoComplete"
        android:maxLength="50" >
@@ -153,11 +159,11 @@
         style="@style/difficulty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
+        android:layout_marginLeft="20dp"
         android:layout_marginRight="10dp"
         android:max="10"
         android:numStars="5"
-        android:stepSize="1" />
+        android:stepSize="0.5" />
 
     <TextView
         android:layout_width="wrap_content"

@@ -47,4 +47,19 @@ public class AccessTokenKeeper {
 		token.setExpiresTime(pref.getLong("expiresTime", 0));
 		return token;
 	}
+	
+	public static void keepUserinfo(Context context,final String jsoninfo){
+		SharedPreferences pref = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_APPEND);
+		Editor editor = pref.edit();
+		editor.putString("userinfo", jsoninfo);
+		editor.commit();
+	}
+	
+	public static String readUserinfo(Context context){
+		SharedPreferences pref = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_APPEND);
+		
+		return pref.getString("userinfo", "");
+	}
+	
+	
 }

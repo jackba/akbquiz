@@ -9,6 +9,7 @@ import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
@@ -29,6 +30,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -47,34 +49,35 @@ public class Quiz extends Activity {
 	private static final String[] ColName = { Database.ColName_ANSWER,
 			Database.ColName_WRONG1, Database.ColName_WRONG2,
 			Database.ColName_WRONG3 };
-	
-	//问题相关
+
+	// 问题相关
 	private static ArrayList<ContentValues> quizList = null;
 	private static boolean isPlaying = false;
 	private int correct_answer = 0;
 	private int difficulty = 0;
 	String[] groups;
-	
-	//界面
+
+	// 界面
 	private Button[] Buttons = new Button[4];
 	private TextView quiz_Question = null;
 	private TextView quiz_Title = null;
 
-	//正误动画
+	// 正误动画
 	private PopupWindow Right = null, Wrong = null;
 	private Animation rightAnim = null, wrongAnim = null;
-	
-	//震动
+
+	// 震动
 	private Vibrator vibrator;
 	private boolean isVibratorOn = true;
-	
-	//计数器、计时器、指针
+
+	// 计数器、计时器、指针
 	private Timer timer = new Timer(true);
 	private int right_count = 0, wrong_count = 0, time_count = 0;
 	private static int quizIndex = 0;
 
 	QuizHandler handler;
-	
+	private Dialog dialog;
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.quiz);
@@ -82,14 +85,12 @@ public class Quiz extends Activity {
 		right_count = 0;
 		wrong_count = 0;
 		time_count = 0;
-		
 
 		SharedPreferences sp_cfg = getSharedPreferences("config",
 				Context.MODE_PRIVATE);
 		isVibratorOn = sp_cfg.getBoolean(Database.ColName_switch_vibration,
 				true);
 		vibrator = (Vibrator) this.getSystemService(Service.VIBRATOR_SERVICE);
-
 
 		Buttons[0] = (Button) findViewById(R.id.button_A);
 		Buttons[1] = (Button) findViewById(R.id.button_B);
@@ -196,6 +197,9 @@ public class Quiz extends Activity {
 		return super.onKeyDown(keyCode, event);
 	}
 
+	/**
+	 * 将quiIndex指向的问题加载到界面
+	 */
 	void setQuiz() {
 
 		if (quizList == null || quizList.size() == 0) {
@@ -203,7 +207,6 @@ public class Quiz extends Activity {
 			return;
 		}
 		Log.d("Quiz", "get " + quizList.size() + " rows");
-		Log.d(TAG, "setQuiz()");
 		Random r = new Random();
 
 		// correct_answer=r.nextInt(4);
@@ -243,6 +246,12 @@ public class Quiz extends Activity {
 
 	}
 
+	/**
+	 * 检查选项并quizIndex自增
+	 * 
+	 * @param answer
+	 *            0~3
+	 */
 	void check(int answer) {
 		Log.d(TAG, "answer = " + answer);
 		quizIndex++;
@@ -290,10 +299,13 @@ public class Quiz extends Activity {
 		}
 	}
 
+	/**
+	 * 答题结束统计
+	 */
 	void summary() {
 		Log.d(TAG, "Summary");
 		timer.cancel();
-		isPlaying=false;
+		isPlaying = false;
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.summary,
 				null);
@@ -320,44 +332,69 @@ public class Quiz extends Activity {
 			public void onClick(DialogInterface dialog, int which) {
 				switch (which) {
 				case DialogInterface.BUTTON_NEGATIVE:
-					Intent intent = new Intent();
-					intent.putExtra("right", right_count);
-					intent.putExtra("wrong", wrong_count);
-					intent.putExtra("time", time_count);
-					setResult(RESULT_OK, intent);
-					dialog.dismiss();
-					finish();
+					finishThis();
 					break;
-				case DialogInterface.BUTTON_NEUTRAL:
+				case DialogInterface.BUTTON_NEUTRAL: 
 					if (MainMenu.weiboAccessToken.isSessionValid()) {
 						Weibo.isWifi = Utility.isWifi(Quiz.this);
 
 						String content = String.format(
 								Quiz.this.getString(R.string.weibo_template),
 								quizList.size(), right_count, wrong_count,
-								time_count, right_count*100
+								time_count, right_count * 100
 										/ (right_count + wrong_count));
 
-						StatusesAPI status = new StatusesAPI(
-								MainMenu.weiboAccessToken);
-						status.update(content, null, null,
-								new RequestListener() {
+						final EditText input = new EditText(Quiz.this);
+						input.setText(content);
+						AlertDialog.Builder builder = new AlertDialog.Builder(
+								Quiz.this);
+						builder.setTitle(R.string.summary_share).setIcon(R.drawable.weibo_logo_48)
+								.setView(input)
+								.setNegativeButton(android.R.string.cancel,
+										new DialogInterface.OnClickListener() {
 
-									@Override
-									public void onComplete(String arg0) {
-										handler.sendEmptyMessage(QuizHandler.WEIBO_SUCCESS);
-									}
+											@Override
+											public void onClick(
+													DialogInterface dialog,
+													int which) {
+												finishThis();
+											}
 
-									@Override
-									public void onError(WeiboException arg0) {
-										handler.sendEmptyMessage(QuizHandler.WEIBO_FAIL);
-									}
+										})
+								.setPositiveButton(android.R.string.ok,
+										new DialogInterface.OnClickListener() {
 
-									@Override
-									public void onIOException(IOException arg0) {
-									}
+											public void onClick(
+													DialogInterface dialog,
+													int which) {
+												StatusesAPI status = new StatusesAPI(
+														MainMenu.weiboAccessToken);
+												status.update(input.getText()
+														.toString(), null,
+														null,
+														new RequestListener() {
 
-								});
+															@Override
+															public void onComplete(
+																	String arg0) {
+																handler.sendEmptyMessage(QuizHandler.WEIBO_SUCCESS);
+															}
+
+															@Override
+															public void onError(
+																	WeiboException arg0) {
+																handler.sendEmptyMessage(QuizHandler.WEIBO_FAIL);
+															}
+
+															@Override
+															public void onIOException(
+																	IOException arg0) {
+															}
+
+														});
+											}
+										});
+						builder.show();
 
 					} else {
 						Toast.makeText(Quiz.this, "还未授权微博或微博授权已过期",
@@ -369,10 +406,21 @@ public class Quiz extends Activity {
 
 			}
 		};
-		summary_bulider.setNegativeButton(android.R.string.ok, listener)
+		dialog = summary_bulider
+				.setNegativeButton(android.R.string.ok, listener)
 				.setNeutralButton(R.string.summary_share, listener)
-				.setTitle("统计信息").setView(layout).create().show();
+				.setTitle("统计信息").setView(layout).create();
+		dialog.show();
+	}
 
+	void finishThis() {
+		Intent intent = new Intent();
+		intent.putExtra("right", right_count);
+		intent.putExtra("wrong", wrong_count);
+		intent.putExtra("time", time_count);
+		setResult(RESULT_OK, intent);
+		dialog.dismiss();
+		finish();
 	}
 
 	OnClickListener l = new OnClickListener() {
@@ -420,7 +468,7 @@ public class Quiz extends Activity {
 
 		@Override
 		public void handleMessage(Message msg) {
-			Log.d(TAG, "msg.what: "+msg.what);
+			Log.d(TAG, "msg.what: " + msg.what);
 			Quiz quizActivity = activity.get();
 			switch (msg.what) {
 			case QUIZ_LOADED:
@@ -430,17 +478,17 @@ public class Quiz extends Activity {
 				Toast.makeText(quizActivity,
 						quizActivity.getString(R.string.weibo_update_success),
 						Toast.LENGTH_SHORT).show();
-				quizActivity.finish();
+				quizActivity.finishThis();
 				break;
 
 			case WEIBO_FAIL:
 				Toast.makeText(quizActivity,
 						quizActivity.getString(R.string.weibo_update_fail),
 						Toast.LENGTH_SHORT).show();
-				quizActivity.finish();
+				quizActivity.finishThis();
 				break;
 			}
-			
+
 		}
 	}
 

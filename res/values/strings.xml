@@ -27,9 +27,13 @@
         
     <string name="chooser_diffi">难度</string>
     <string name="collect_editor">作者</string>
+    <string name="collect_editor_hint">请输入你的名字</string>
     <string name="collect_question">问题</string>
+    <string name="collect_question_hint">请输入你的问题</string>
     <string name="collect_answer">正确答案</string>
+    <string name="collect_answer_hint">这道题的正确答案是&#8230;</string>
     <string name="collect_wrong1">备选答案1</string>
+    <string name="collect_wrong_hint">这个答案是错的&#8230;</string>
     <string name="collect_wrong2">备选答案2</string>
     <string name="collect_wrong3">备选答案3</string>
     <string name="collect_groups">相关团队</string>
@@ -60,7 +64,7 @@
     <string name="summary_sum">答题：</string>
     <string name="summary_share">分享</string>
     
-    <string name="weibo_template">我在#AKBQuiz#答了%1$d个题，%2$d正%3$d误，用时%4$d,正确率%5$d%%。</string>
+    <string name="weibo_template">我在#AKBQuiz#答了%1$d个题，%2$d正%3$d误，用时%4$d s,正确率%5$d%%。</string>
 	<string name="weibo_update_success">微博发布成功</string>
 	<string name="weibo_update_fail">微博发布失败</string>
 	<string name="weibo_linkto">微博授权</string>

@@ -2,11 +2,9 @@ package babybear.akbquiz;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
@@ -17,7 +15,6 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RatingBar;
@@ -27,6 +24,7 @@ import android.widget.ToggleButton;
 public class CollectQuiz extends Activity {
 	private QuizContainder quiz, lastquiz;
 
+	private boolean isSending = false;
 	Handler handler;
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -41,90 +39,12 @@ public class CollectQuiz extends Activity {
 		init();
 	}
 
+	/**
+	 * 初始化
+	 */
 	private void init() {
 
 		lastquiz = quiz = new QuizContainder();
-
-		// OnEditorActionListener eal = new OnEditorActionListener() {
-		//
-		// @Override
-		// public boolean onEditorAction(TextView arg0, int arg1, KeyEvent arg2)
-		// {
-		// if(arg1!=EditorInfo.IME_ACTION_NEXT)return false;
-		// switch (arg0.getId()) {
-		// case R.id.question:
-		// break;
-		// case R.id.editor:
-		// break;
-		// case R.id.answer:
-		// break;
-		// case R.id.wrong1:
-		// break;
-		// case R.id.wrong2:
-		// break;
-		// case R.id.wrong3:
-		// break;
-		// }
-		//
-		// return false;
-		// }
-		//
-		// };
-/*
-		OnFocusChangeListener fcl = new OnFocusChangeListener() {
-
-			@Override
-			public void onFocusChange(View arg0, boolean arg1) {
-				if (arg1)
-					return;
-				switch (arg0.getId()) {
-				case R.id.question:
-					quiz.question = ((EditText) arg0).getText().toString();
-					break;
-				case R.id.editor:
-					quiz.editor = ((EditText) arg0).getText().toString();
-					break;
-				case R.id.answer:
-					quiz.options[0] = ((EditText) arg0).getText().toString();
-					break;
-				case R.id.wrong1:
-					quiz.options[1] = ((EditText) arg0).getText().toString();
-					break;
-				case R.id.wrong2:
-					quiz.options[2] = ((EditText) arg0).getText().toString();
-					break;
-				case R.id.wrong3:
-					quiz.options[3] = ((EditText) arg0).getText().toString();
-					break;
-				}
-			}
-
-		};
-
-		EditText editor = (EditText) findViewById(R.id.editor);
-		// editor.setOnEditorActionListener(eal);
-		editor.setOnFocusChangeListener(fcl);
-		
-
-		EditText question = (EditText) findViewById(R.id.question);
-		// question.setOnEditorActionListener(eal);
-		question.setOnFocusChangeListener(fcl);
-
-		EditText answer = (EditText) findViewById(R.id.answer);
-		// answer.setOnEditorActionListener(eal);
-		answer.setOnFocusChangeListener(fcl);
-
-		EditText wrong1 = (EditText) findViewById(R.id.wrong1);
-		// wrong1.setOnEditorActionListener(eal);
-		wrong1.setOnFocusChangeListener(fcl);
-
-		EditText wrong2 = (EditText) findViewById(R.id.wrong2);
-		// wrong2.setOnEditorActionListener(eal);
-		wrong2.setOnFocusChangeListener(fcl);
-
-		EditText wrong3 = (EditText) findViewById(R.id.wrong3);
-		// wrong3.setOnEditorActionListener(eal);
-		wrong3.setOnFocusChangeListener(fcl);*/
 
 		OnClickListener l = new OnClickListener() {
 
@@ -160,25 +80,33 @@ public class CollectQuiz extends Activity {
 					CollectQuiz.this.finish();
 
 				case R.id.submit:
-					
-					quiz.question = ((EditText)findViewById(R.id.question)).getText().toString();
-					quiz.editor = ((EditText) findViewById(R.id.editor)).getText().toString();
-					quiz.options[0] = ((EditText) findViewById(R.id.answer)).getText().toString();
-					quiz.options[1] = ((EditText) findViewById(R.id.wrong1)).getText().toString();
-					quiz.options[2] = ((EditText) findViewById(R.id.wrong2)).getText().toString();
-					quiz.options[3] = ((EditText) findViewById(R.id.wrong3)).getText().toString();
-					
-					
-					
+					if (isSending)
+						return;
+					quiz.question = ((EditText) findViewById(R.id.question))
+							.getText().toString();
+					quiz.editor = ((EditText) findViewById(R.id.editor))
+							.getText().toString();
+					quiz.options[0] = ((EditText) findViewById(R.id.answer))
+							.getText().toString();
+					quiz.options[1] = ((EditText) findViewById(R.id.wrong1))
+							.getText().toString();
+					quiz.options[2] = ((EditText) findViewById(R.id.wrong2))
+							.getText().toString();
+					quiz.options[3] = ((EditText) findViewById(R.id.wrong3))
+							.getText().toString();
+
 					if (quiz == lastquiz
-							|| QuizContainder.isNewQuiz(quiz, lastquiz)) 
-						if (QuizContainder.isUseable(CollectQuiz.this, quiz)){
-						new Thread() {
-							public void run() {
-								submit();
-							}
-						}.start();
-					}
+							|| QuizContainder.isNewQuiz(quiz, lastquiz))
+						if (QuizContainder.isUseable(CollectQuiz.this, quiz)) {
+
+							isSending = true;
+							Toast.makeText(CollectQuiz.this, "正在提交...", Toast.LENGTH_LONG).show();
+							new Thread() {
+								public void run() {
+									submit();
+								}
+							}.start();
+						}
 				}
 			}
 		};
@@ -218,22 +146,25 @@ public class CollectQuiz extends Activity {
 					boolean fromUser) {
 				if (!fromUser)
 					return;
-				quiz.difficulty = (int) (rating);
+				quiz.difficulty = (int) (rating*2);
 
 			}
 
 		});
 
 	}
-
-	private boolean submit() {
+	
+	/**
+	 * 提交
+	 */
+	private void submit() {
 		HttpURLConnection conn = null;
 		try {
 			URL url = new URL(
 					"http://fanhuashe.sinaapp.com/quiz/quizcollect/addquiz.php");
 			conn = (HttpURLConnection) url.openConnection();
-			conn.setConnectTimeout(20000);
-			conn.setReadTimeout(20000);
+			conn.setConnectTimeout(10000);
+			conn.setReadTimeout(10000);
 			conn.setDoInput(true);
 			conn.setDoOutput(true);
 			conn.setRequestMethod("POST");
@@ -241,66 +172,109 @@ public class CollectQuiz extends Activity {
 
 			DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
 			String postContent = "editor=" + URLEncoder.encode(quiz.editor)
-					+ "&group=" + quiz.getGroup() + "&difficulty="
+					+ "&groups=" + quiz.getGroup() + "&difficulty="
 					+ quiz.difficulty + "&question="
-					+ URLEncoder.encode(quiz.question) + "&answer="
-					+ URLEncoder.encode(quiz.options[0]) + "&wrong="
-					+ quiz.getWrongs();// TODO
-			
-			Log.d("cq", "postContent="+postContent);
+					+ URLEncoder.encode(quiz.question) + "&options="
+					+ quiz.getOptions();
+
+			Log.d("cq", "postContent: " + postContent);
 			dos.write(postContent.getBytes());
 			dos.flush();
 			dos.close();
-			
+
 			InputStream in = conn.getInputStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(in,
 					"utf-8"));
 
-			final String line = br.readLine();
+			String line = br.readLine();
+			Log.d("submit", line);
 			if (line.equalsIgnoreCase("success")) {
 				lastquiz = quiz;
 				quiz = new QuizContainder();
 
 				handler.post(new Runnable() {
-				
+
 					@Override
 					public void run() {
-					// TODO Auto-generated method stub
-						Toast.makeText(CollectQuiz.this, "提交成功", Toast.LENGTH_SHORT).show();
+						reset();
+						isSending = false;
+						Toast.makeText(CollectQuiz.this, "提交成功",
+								Toast.LENGTH_LONG).show();
 					}
-					
+
 				});
 			} else {
 				handler.post(new Runnable() {
-					
+
 					@Override
 					public void run() {
-					// TODO Auto-generated method stub
-						Log.d("submit", "提交失败:"+line);
-						Toast.makeText(CollectQuiz.this, "提交失败:"+line, Toast.LENGTH_LONG).show();
+						isSending = false;
+						Toast.makeText(CollectQuiz.this, "提交失败",
+								Toast.LENGTH_LONG).show();
 					}
-					
+
 				});
 
 			}
 
+			while ((line = br.readLine()) != null) {
+				Log.d("submit", line);
+			}
 			br.close();
 			in.close();
 
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			handler.post(new Runnable() {
+				@Override
+				public void run() {
+					isSending = false;
+					Toast.makeText(CollectQuiz.this, "提交失败", Toast.LENGTH_LONG)
+							.show();
+				}
+
+			});
 		}
-		return false;
 	}
 
+	
+	/**
+	 * 重置
+	 */
+	void reset() {
+		lastquiz = quiz;
+		quiz = new QuizContainder();
+
+		((EditText) findViewById(R.id.question)).setText("");
+		((EditText) findViewById(R.id.answer)).setText("");
+		((EditText) findViewById(R.id.wrong1)).setText("");
+		((EditText) findViewById(R.id.wrong2)).setText("");
+		((EditText) findViewById(R.id.wrong3)).setText("");
+
+		((ToggleButton) findViewById(R.id.akb_toggle)).setChecked(false);
+		((ToggleButton) findViewById(R.id.ske_toggle)).setChecked(false);
+		((ToggleButton) findViewById(R.id.nmb_toggle)).setChecked(false);
+		((ToggleButton) findViewById(R.id.hkt_toggle)).setChecked(false);
+		((ToggleButton) findViewById(R.id.jkt_toggle)).setChecked(false);
+		((ToggleButton) findViewById(R.id.snh_toggle)).setChecked(false);
+		// ((ToggleButton)findViewById(R.id.sdn_toggle)).setChecked(false);
+
+		((RatingBar) findViewById(R.id.difficulty)).setRating(0);
+	}
+
+	
+	/**
+	 * 内部类 包含一道题目的全部信息
+	 * @author BabyBeaR
+	 *
+	 */
 	static class QuizContainder {
 		public int difficulty = 0;
 		public String editor;
 		public String question;
 		public String[] options = new String[4];
-		public boolean akb, ske, nmb, hkt, sdn, snh, jkt, ngzk;
+		public boolean akb = false, ske = false, nmb = false, hkt = false,
+				sdn = false, snh = false, jkt = false, ngzk = false;
 
 		static int LIMIT_TOP_EDITOR = 32;
 		static int LIMIT_LOW_EDITOR = 2;
@@ -309,46 +283,74 @@ public class CollectQuiz extends Activity {
 		static int LIMIT_TOP_ANSWER = 50;
 		static int LIMIT_LOW_ANSWER = 2;
 
+		/**
+		 * 获取本题目groups数组的JSON字符串
+		 * @return String JSON化的字符串
+		 */
 		public String getGroup() {
 			StringBuffer sb = new StringBuffer();
 			sb.append("[");
-			sb.append(akb);
+			sb.append(akb ? 1 : 0);
 			sb.append(",");
-			sb.append(ske);
+			sb.append(ske ? 1 : 0);
 			sb.append(",");
-			sb.append(nmb);
+			sb.append(nmb ? 1 : 0);
 			sb.append(",");
-			sb.append(hkt);
+			sb.append(hkt ? 1 : 0);
 			sb.append(",");
-			sb.append(ngzk);
+			sb.append(ngzk ? 1 : 0);
 			sb.append(",");
-			sb.append(sdn);
+			sb.append(sdn ? 1 : 0);
 			sb.append(",");
-			sb.append(jkt);
+			sb.append(jkt ? 1 : 0);
 			sb.append(",");
-			sb.append(snh);
+			sb.append(snh ? 1 : 0);
 			sb.append("]");
+
 			return sb.toString();
 		}
 
-		public String getWrongs() {
+		
+		/**
+		 * 获取本题目选项数组的JSON字符串
+		 * @return String JSON化的字符串
+		 */
+		public String getOptions() {
 			StringBuffer sb = new StringBuffer();
 			sb.append("[\"");
-			sb.append(options[1]);
+			sb.append(URLEncoder.encode(options[0]));
 			sb.append("\",\"");
-			sb.append(options[2]);
+			sb.append(URLEncoder.encode(options[1]));
 			sb.append("\",\"");
-			sb.append(options[3]);
+			sb.append(URLEncoder.encode(options[2]));
+			sb.append("\",\"");
+			sb.append(URLEncoder.encode(options[3]));
 			sb.append("\"]");
 			return sb.toString();
 		}
 
+		
+		/**
+		 * 比较两个问题是否相同
+		 * 判断条件是 问题的答案完全相同(不分大小写)
+		 * @param q1 要比较的问题1
+		 * @param q2 要比较的问题2
+		 * @return true两个问题不同是一个新问题  false两个问题相同
+		 */
 		static boolean isNewQuiz(QuizContainder q1, QuizContainder q2) {
 			if (q1.question.equalsIgnoreCase(q2.question))
-				return false;
+				if(q1.options[0].equalsIgnoreCase(q2.options[0]))
+					return false;
 			return true;
 		}
 
+		
+		/**
+		 * 问题是否符合要求
+		 * @param context Context对象 只是为了发送Toast
+		 * @param q1 要判断的问题
+		 * @return true 符合 false 不符合
+		 */
 		static boolean isUseable(Context context, QuizContainder q1) {
 			if (q1.difficulty <= 0 || q1.difficulty > 10) {
 				Toast.makeText(context, "请设置难度", Toast.LENGTH_SHORT).show();
