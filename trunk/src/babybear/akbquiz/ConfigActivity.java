@@ -82,7 +82,7 @@ public class ConfigActivity extends Activity {
 	ListView playlistView;
 
 	boolean isPlaylistChanged = false;
-	SsoHandler weiboSsoHandler;
+	SsoHandler weiboSsoHandler ;
 
 	int newVerCode, verCode;
 	String newVerName, verName, updateURL;
@@ -117,6 +117,10 @@ public class ConfigActivity extends Activity {
 
 	}
 
+	
+	/**
+	 * 初始化微博相关的对象及界面
+	 */
 	private void weiboInit() {
 		weibo_btn = (Button) findViewById(R.id.config_weibo);
 		weibo_btn.setOnClickListener(new OnClickListener() {
@@ -166,6 +170,9 @@ public class ConfigActivity extends Activity {
 
 	}
 
+	/**
+	 * 初始化
+	 */
 	private void init() {
 		ToggleButton bgm_toggle = (ToggleButton) findViewById(R.id.bgm_switch);
 		ToggleButton sound_toggle = (ToggleButton) findViewById(R.id.sound_switch);
@@ -278,6 +285,8 @@ public class ConfigActivity extends Activity {
 				.setOnClickListener(clickListener);
 		((Button) findViewById(R.id.config_quiz_submit))
 				.setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_ranking))
+				.setOnClickListener(clickListener);
 		
 		OnSeekBarChangeListener l_seekbar = new OnSeekBarChangeListener() {
 
@@ -313,6 +322,10 @@ public class ConfigActivity extends Activity {
 		sound_vol.setOnSeekBarChangeListener(l_seekbar);
 	}
 
+	
+	/**
+	 * 发现新版本要做的
+	 */
 	private void doNewVersionUpdate() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("当前版本:");
@@ -352,6 +365,9 @@ public class ConfigActivity extends Activity {
 		dialog.show();
 	}
 
+	/**
+	 * 没有发现新版本要做的
+	 */
 	private void notNewVersionShow() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("当前版本:");
@@ -373,6 +389,10 @@ public class ConfigActivity extends Activity {
 		dialog.show();
 	}
 
+	/**
+	 * 下载文件
+	 * @param url 文件URL
+	 */
 	void downFile(final String url) {
 		pBar.show();
 		new Thread() {
@@ -428,6 +448,9 @@ public class ConfigActivity extends Activity {
 		}.start();
 	}
 
+	/**
+	 * 执行升级
+	 */
 	void update() {
 		Intent intent = new Intent(Intent.ACTION_VIEW);
 		intent.setDataAndType(Uri.fromFile(new File(Environment
@@ -436,6 +459,11 @@ public class ConfigActivity extends Activity {
 		startActivity(intent);
 	}
 
+	/**
+	 * 获取当前版本号信息
+	 * @param context
+	 * @return 当前版本号
+	 */
 	public int getVerCode(Context context) {
 		int verCode = -1;
 		try {
@@ -447,6 +475,11 @@ public class ConfigActivity extends Activity {
 		return verCode;
 	}
 
+	/**
+	 * 获取当前版本名信息
+	 * @param context
+	 * @return 版本名
+	 */
 	public String getVerName(Context context) {
 		String verName = "";
 		try {
@@ -458,6 +491,10 @@ public class ConfigActivity extends Activity {
 		return verName;
 	}
 
+	/**
+	 * 获取服务端版本号和版本名
+	 * @return 成功获取返回true
+	 */
 	private boolean getServerVer() {
 		try {
 			String verjson = getURLContent(SERVER_URL + APP_VER);
@@ -481,6 +518,12 @@ public class ConfigActivity extends Activity {
 		return true;
 	}
 
+	/**
+	 * 获取http内容
+	 * @param url
+	 * @return
+	 * @throws Exception
+	 */
 	public String getURLContent(String url) throws Exception {
 		StringBuilder sb = new StringBuilder();
 
@@ -504,6 +547,10 @@ public class ConfigActivity extends Activity {
 		return sb.toString();
 	}
 
+	
+	/**
+	 * 加载设置播放列表编辑器
+	 */
 	private void loadPlaylistEditor() {
 
 		musicList = queryMusics();
@@ -596,6 +643,10 @@ public class ConfigActivity extends Activity {
 
 	}
 
+	/**
+	 * 获取本机的音乐
+	 * @return 本机的音乐列表
+	 */
 	private ArrayList<Music> queryMusics() {
 		ArrayList<Music> musiclistResult = new ArrayList<Music>();
 		ContentResolver cr = this.getContentResolver();
@@ -641,6 +692,10 @@ public class ConfigActivity extends Activity {
 		return musiclistResult;
 	}
 
+	/**
+	 * 从文件获取保存的播放列表
+	 * @return 播放列表
+	 */
 	private ArrayList<Music> loadPlaylist() {
 		ArrayList<Music> playlist = new ArrayList<Music>();
 		try {
@@ -662,6 +717,11 @@ public class ConfigActivity extends Activity {
 		return playlist;
 	}
 
+	/**
+	 * 从路径获取音乐信息
+	 * @param DATA
+	 * @return 音乐信息
+	 */
 	private Music matchMusic(String DATA) {
 		if (DATA.equals("default"))
 			return defaultMusic;
@@ -672,6 +732,9 @@ public class ConfigActivity extends Activity {
 		return null;
 	}
 
+	/**
+	 * 保存播放列表
+	 */
 	private void savePlaylist() {
 		JSONArray arr = new JSONArray();
 		for (int i = 0, length = playlistList.size(); i < length; i++) {
@@ -680,12 +743,19 @@ public class ConfigActivity extends Activity {
 		cfgEditor.putString("playlist", arr.toString());
 	}
 	
+	/**
+	 * 切换背景音乐播放模式
+	 */
 	private void changeLoopMode() {
-		// TODO Auto-generated method stub
+		// TODO 背景音乐模式切换
 		
 	}
 	
-
+	/**
+	 * ListView的适配器
+	 * @author BabyBeaR
+	 *
+	 */
 	private class PlaylistAdapter extends ArrayAdapter<Music> {
 		OnClickListener l;
 
@@ -720,6 +790,11 @@ public class ConfigActivity extends Activity {
 
 	}
 
+	/**
+	 * 音乐的信息
+	 * @author BabyBeaR
+	 *
+	 */
 	@SuppressWarnings("unused")
 	private class Music {
 		int _ID;
@@ -728,6 +803,11 @@ public class ConfigActivity extends Activity {
 		String TITLE, ARTIST, ALBUM, DATA;
 	}
 
+	/**
+	 * 新浪微博认证的回调对象
+	 * @author BabyBeaR
+	 *
+	 */
 	class AuthDialogListener implements WeiboAuthListener {
 
 		@Override
