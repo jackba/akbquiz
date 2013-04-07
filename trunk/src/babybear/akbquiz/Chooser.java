@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -50,7 +52,7 @@ public class Chooser extends Activity {
 		JKT48IsChoosed = sp_quiz.getBoolean(Database.GroupName_JKT48, false);
 		SNH48IsChoosed = sp_quiz.getBoolean(Database.GroupName_SNH48, false);
 
-		MODE = this.getIntent().getIntExtra(MainMenu.key_playmode,
+		MODE = this.getIntent().getIntExtra(MainMenu.KEY_PLAYMODE,
 				MainMenu.REQUEST_START_NORMAL);
 
 	}
@@ -109,7 +111,18 @@ public class Chooser extends Activity {
 		});
 
 		findViewById(R.id.game_start).setOnClickListener(l);
-
+		
+		SharedPreferences sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
+		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
+			findViewById(R.id.chooser_body).setBackgroundDrawable(Drawable
+					.createFromPath(Environment
+							.getExternalStorageDirectory().getPath()
+							+ "/Android/data/"
+							+ getPackageName()
+							+ "/custom_bg.png"));
+		}else{
+			findViewById(R.id.chooser_body).setBackgroundResource(R.drawable.background);
+		}
 	}
 
 	/**
@@ -198,7 +211,7 @@ public class Chooser extends Activity {
 
 				intent.putExtra(KeyName_difficulty, difficulty);
 
-				intent.putExtra(MainMenu.key_playmode, MODE);
+				intent.putExtra(MainMenu.KEY_PLAYMODE, MODE);
 
 				startActivityForResult(intent, MODE);
 
