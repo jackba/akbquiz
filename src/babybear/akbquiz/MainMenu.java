@@ -22,7 +22,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.AssetManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -52,10 +54,10 @@ import com.weibo.sdk.android.util.Utility;
 
 public class MainMenu extends Activity {
 
-	private static final String databasePath = "/data/data/babybear.akbquiz/databases/AKBQuiz.db";
+	
 	public static final int REQUEST_CONFIG = 0, REQUEST_START_NORMAL = 1,
 			REQUEST_START_CHALLENGE = 2, REQUEST_AUTH_WEIBO = 100;
-	public static final String key_playmode = "playmode";
+	public static final String KEY_PLAYMODE = "playmode";
 
 	private static final String WEIBO_KEY = "3909609063";
 	private static final String SINA_URL = "http://www.sina.com";
@@ -118,7 +120,7 @@ public class MainMenu extends Activity {
 		menu_flipper = (ViewFlipper) findViewById(R.id.menu_flipper);
 		userListView = (ListView) findViewById(R.id.listview_user);
 
-		se.setSwitch(sp_cfg.getBoolean(Database.ColName_switch_sound, true));
+		se.setSwitch(sp_cfg.getBoolean(Database.KEY_switch_sound, true));
 
 		refreshUserlist();
 		if (userList != null)
@@ -133,7 +135,7 @@ public class MainMenu extends Activity {
 				switch (v.getId()) {
 				case R.id.start:
 					Intent intent = new Intent(MainMenu.this, Chooser.class);
-					intent.putExtra(key_playmode, REQUEST_START_NORMAL);
+					intent.putExtra(KEY_PLAYMODE, REQUEST_START_NORMAL);
 					startActivityForResult(intent,
 							MainMenu.REQUEST_START_NORMAL);
 					break;
@@ -152,6 +154,9 @@ public class MainMenu extends Activity {
 				case R.id.create_user:
 					createUser(true);
 					break;
+				case R.id.clear:
+					menu_flipper.showPrevious();
+					break;
 				}
 			}
 		};
@@ -161,21 +166,22 @@ public class MainMenu extends Activity {
 		((Button) findViewById(R.id.users)).setOnClickListener(l);
 		((Button) findViewById(R.id.config)).setOnClickListener(l);
 		((Button) findViewById(R.id.create_user)).setOnClickListener(l);
-
+		((Button) findViewById(R.id.clear)).setOnClickListener(l);
+		
 		Intent intentBgMusic = new Intent(this, BgMusic.class);
 
 		if (userList == null) {
 			// intentBgMusic.putExtra(Database.ColName_extend,"");
-			intentBgMusic.putExtra(Database.ColName_vol_bg, 10);
-			intentBgMusic.putExtra(Database.ColName_switch_bg, true);
+			intentBgMusic.putExtra(Database.KEY_vol_bg, 10);
+			intentBgMusic.putExtra(Database.KEY_switch_bg, true);
 		} else {
 
 			intentBgMusic.putExtra(Database.ColName_playlist,
 					sp_cfg.getString(Database.ColName_playlist, ""));
-			intentBgMusic.putExtra(Database.ColName_vol_bg,
-					sp_cfg.getInt(Database.ColName_vol_bg, 10));
-			intentBgMusic.putExtra(Database.ColName_switch_bg,
-					sp_cfg.getBoolean(Database.ColName_switch_bg, true));
+			intentBgMusic.putExtra(Database.KEY_vol_bg,
+					sp_cfg.getInt(Database.KEY_vol_bg, 10));
+			intentBgMusic.putExtra(Database.KEY_switch_bg,
+					sp_cfg.getBoolean(Database.KEY_switch_bg, true));
 		}
 		startService(intentBgMusic);
 
@@ -185,7 +191,7 @@ public class MainMenu extends Activity {
 		super.onStart();
 		if (userList == null)
 			firstRun();
-
+		setBackground();
 	}
 
 	protected void onStop() {
@@ -208,6 +214,9 @@ public class MainMenu extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 
 		switch (requestCode) {
+		case REQUEST_CONFIG:
+			setBackground();
+			break;
 		case REQUEST_START_NORMAL:
 			if (resultCode == Activity.RESULT_OK) {
 				ContentValues currUser = userList.get(currentUserInList);
@@ -281,6 +290,31 @@ public class MainMenu extends Activity {
 	}
 
 	/**
+	 * 自动设置背景图片
+	 */
+	private void setBackground() {
+		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
+			Log.d("setBackground()", "true");
+			File file = new File(Environment.getExternalStorageDirectory()
+					.getPath()
+					+ "/Android/data/"
+					+ getPackageName()
+					+ "/custom_bg.png");
+			if (file.exists()) {
+				menu_flipper.setBackgroundDrawable(Drawable.createFromPath(file
+						.getPath()));
+			} else {
+				Toast.makeText(this, "没有找到设置的背景图片", Toast.LENGTH_SHORT).show();
+
+			}
+		} else {
+			Log.d("setBackground()", "false");
+			menu_flipper.setBackgroundResource(R.drawable.background);
+		}
+
+	}
+
+	/**
 	 * 弹出一个AlartDialog创建一个用户
 	 * 
 	 * @param isCancelable
@@ -295,7 +329,7 @@ public class MainMenu extends Activity {
 				switch (arg0.getId()) {
 				case R.id.cancel:
 					userCreator.cancel();
-				
+
 				case R.id.ok:
 					String userin_lower,
 					user_lower;
@@ -496,8 +530,7 @@ public class MainMenu extends Activity {
 	};
 
 	protected void refreshRecord() {
-		// TODO Auto-generated method stub
-
+		// TODO Auto-generated method stubW
 	}
 
 	/**
@@ -586,17 +619,19 @@ public class MainMenu extends Activity {
 	private void firstRun() {
 
 		Editor cfg_Editor = sp_cfg.edit();
-		cfg_Editor.putBoolean(Database.ColName_switch_bg, true);
-		cfg_Editor.putBoolean(Database.ColName_switch_sound, true);
-		cfg_Editor.putBoolean(Database.ColName_switch_vibration, true);
-		cfg_Editor.putInt(Database.ColName_vol_bg, 10);
-		cfg_Editor.putInt(Database.ColName_vol_sound, 10);
+		cfg_Editor.putBoolean(Database.KEY_switch_bg, true);
+		cfg_Editor.putBoolean(Database.KEY_switch_sound, true);
+		cfg_Editor.putBoolean(Database.KEY_switch_vibration, true);
+		cfg_Editor.putInt(Database.KEY_vol_bg, 10);
+		cfg_Editor.putInt(Database.KEY_vol_sound, 10);
 		cfg_Editor.putString(Database.ColName_playlist, "android.resource://"
 				+ getPackageName() + "/" + R.raw.bg);
+		cfg_Editor.putBoolean(Database.KEY_use_custom_background, false);
 		cfg_Editor.commit();
-
+		
+		
 		AssetManager am = getAssets();
-		File fileout = new File(databasePath);
+		File fileout = new File(Database.databasePath);
 		if (!fileout.exists()) {
 			try {
 				InputStream is = am.open("q.db");
@@ -626,7 +661,10 @@ public class MainMenu extends Activity {
 				e.printStackTrace();
 			}
 		}
-
+		File ext = new File(Environment.getExternalStorageDirectory().getPath()
+				+ "/Android/data/" + getPackageName());
+		if (!ext.exists())
+			ext.mkdirs();
 		createUser(false);
 	}
 

@@ -6,7 +6,7 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/calendar_editor_loading"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -20,7 +20,7 @@
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/textView2"
+        android:layout_above="@+id/calendar_editor_loading"
         android:layout_centerHorizontal="true"
         android:text="@string/Warning"
         android:textAppearance="?android:attr/textAppearanceLarge" />

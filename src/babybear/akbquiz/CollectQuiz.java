@@ -78,6 +78,7 @@ public class CollectQuiz extends Activity {
 
 				case R.id.cancel:
 					CollectQuiz.this.finish();
+					break;
 
 				case R.id.submit:
 					if (isSending)
@@ -107,6 +108,7 @@ public class CollectQuiz extends Activity {
 								}
 							}.start();
 						}
+					break;
 				}
 			}
 		};

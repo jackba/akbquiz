@@ -3,6 +3,7 @@ package babybear.akbquiz;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -10,13 +11,16 @@ import java.util.TimerTask;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
@@ -61,6 +65,7 @@ public class Quiz extends Activity {
 	private Button[] Buttons = new Button[4];
 	private TextView quiz_Question = null;
 	private TextView quiz_Title = null;
+	private ProgressDialog loading = null;
 
 	// 正误动画
 	private PopupWindow Right = null, Wrong = null;
@@ -88,7 +93,7 @@ public class Quiz extends Activity {
 
 		SharedPreferences sp_cfg = getSharedPreferences("config",
 				Context.MODE_PRIVATE);
-		isVibratorOn = sp_cfg.getBoolean(Database.ColName_switch_vibration,
+		isVibratorOn = sp_cfg.getBoolean(Database.KEY_switch_vibration,
 				true);
 		vibrator = (Vibrator) this.getSystemService(Service.VIBRATOR_SERVICE);
 
@@ -120,13 +125,30 @@ public class Quiz extends Activity {
 		Wrong.setWidth(LayoutParams.FILL_PARENT);
 		Wrong.setHeight(LayoutParams.FILL_PARENT);
 
+		loading = new ProgressDialog(this);
+		loading.setCancelable(false);
+		loading.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		loading.setTitle(R.string.quiz_loading);
+		loading.setMax(100);
 	}
 
 	public void onStart() {
 		super.onStart();
 		Log.d(TAG, "onStart");
 		// getQuiz();
-
+				
+		SharedPreferences sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
+		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
+			findViewById(R.id.quiz_body).setBackgroundDrawable(Drawable
+					.createFromPath(Environment
+							.getExternalStorageDirectory().getPath()
+							+ "/Android/data/"
+							+ getPackageName()
+							+ "/custom_bg.png"));
+		}else{
+			findViewById(R.id.quiz_body).setBackgroundResource(R.drawable.background);
+		}
+		
 		Bundle data = this.getIntent().getExtras();
 		ArrayList<String> group = new ArrayList<String>();
 		if (data.getBoolean(Database.GroupName_AKB48)) {
@@ -161,14 +183,63 @@ public class Quiz extends Activity {
 			public Database db;
 
 			public void run() {
+				Date start = new Date();
+				Log.d(TAG, "start query quiz @ " + start.toLocaleString());
+				Random r = new Random();
+
+				handler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						loading.show();
+						loading.setMessage(getString(R.string.quiz_querying));
+						loading.setProgress(20);
+					}
+
+				});
 				db = new Database(Quiz.this, Database.DBName_quiz);
-				quizList = db.QuizQuery(groups);
+
+				ArrayList<ContentValues> questions;
+				questions = db.QuizQuery(groups);
+
+				Date get = new Date();
+				Log.d(TAG, "get query quiz @ " + get.toLocaleString() + " in "
+						+ (get.getTime() - start.getTime() + " ms"));
+				handler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						loading.setMessage(getString(R.string.quiz_processing));
+						loading.setProgress(80);
+					}
+
+				});
+				quizList = new ArrayList<ContentValues>();
+
+				for (int i = 0, length = questions.size(); i < length; i++) {
+					int t = r.nextInt(questions.size());
+					quizList.add(questions.get(t));
+					questions.remove(t);
+				}
 				quizIndex = 0;
-				handler.sendEmptyMessage(QuizHandler.QUIZ_LOADED);
 				if (quizList != null && quizList.size() > 0) {
 					isPlaying = true;
 					timer.scheduleAtFixedRate(t_timer, 1000, 1000);
 				}
+				Date complete = new Date();
+				Log.d(TAG, "complete query quiz @ " + complete.toLocaleString()
+						+ " in " + (complete.getTime() - get.getTime() + " ms"));
+				handler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						loading.setMessage(getString(R.string.quiz_complete));
+						loading.setProgress(100);
+						loading.dismiss();
+					}
+
+				});
+				handler.sendEmptyMessage(QuizHandler.QUIZ_LOADED);
 			}
 		}.start();
 
@@ -256,7 +327,7 @@ public class Quiz extends Activity {
 		Log.d(TAG, "answer = " + answer);
 		quizIndex++;
 		if (answer == correct_answer) {
-			Right.showAtLocation(findViewById(R.id.full), Gravity.CENTER, 0, 0);
+			Right.showAtLocation(findViewById(R.id.quiz_body), Gravity.CENTER, 0, 0);
 
 			new Handler().postDelayed(new Runnable() {
 				public void run() {
@@ -277,7 +348,7 @@ public class Quiz extends Activity {
 			right_count++;
 			Log.d(TAG, "Right");
 		} else {
-			Wrong.showAtLocation(findViewById(R.id.full), Gravity.CENTER, 0, 0);
+			Wrong.showAtLocation(findViewById(R.id.quiz_body), Gravity.CENTER, 0, 0);
 			new Handler().postDelayed(new Runnable() {
 				public void run() {
 					Wrong.dismiss();
@@ -334,7 +405,7 @@ public class Quiz extends Activity {
 				case DialogInterface.BUTTON_NEGATIVE:
 					finishThis();
 					break;
-				case DialogInterface.BUTTON_NEUTRAL: 
+				case DialogInterface.BUTTON_NEUTRAL:
 					if (MainMenu.weiboAccessToken.isSessionValid()) {
 						Weibo.isWifi = Utility.isWifi(Quiz.this);
 
@@ -348,7 +419,8 @@ public class Quiz extends Activity {
 						input.setText(content);
 						AlertDialog.Builder builder = new AlertDialog.Builder(
 								Quiz.this);
-						builder.setTitle(R.string.summary_share).setIcon(R.drawable.weibo_logo_48)
+						builder.setTitle(R.string.summary_share)
+								.setIcon(R.drawable.weibo_logo_48)
 								.setView(input)
 								.setNegativeButton(android.R.string.cancel,
 										new DialogInterface.OnClickListener() {

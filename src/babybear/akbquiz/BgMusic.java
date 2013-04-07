@@ -28,7 +28,7 @@ import android.widget.Toast;
 
 public class BgMusic extends Service {
 	private static final String TAG = "BgMusic";
-	private static final int MODE_LOOP = 0, MODE_RANDOM = 1, MODE_SINGLE = 2;
+	public static final int MODE_LOOP = 0, MODE_RANDOM = 1, MODE_SINGLE = 2;
 
 	private MediaPlayer player;
 	private AudioManager am;
@@ -66,7 +66,7 @@ public class BgMusic extends Service {
 				PlayingNo = r.nextInt(playlistLength);
 				break;
 			case MODE_SINGLE:
-
+				
 				break;
 			}
 			player.release();
@@ -175,13 +175,13 @@ public class BgMusic extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "+onStart+");
 
-		isOn = intent.getBooleanExtra(Database.ColName_switch_bg, true);
+		isOn = intent.getBooleanExtra(Database.KEY_switch_bg, true);
 
 		setPlaylist(getSharedPreferences("config", Context.MODE_PRIVATE)
 				.getString(Database.ColName_playlist, ""));
 		am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 		am.setStreamVolume(AudioManager.STREAM_MUSIC,
-				intent.getIntExtra(Database.ColName_vol_bg, 10), 0);
+				intent.getIntExtra(Database.KEY_vol_bg, 10), 0);
 
 		if (playlist != null) {
 			player = MediaPlayer.create(this, playlist[PlayingNo]);
