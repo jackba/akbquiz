@@ -12,7 +12,7 @@
         android:layout_marginRight="10dp"
         android:layout_marginTop="10dp"
         android:ems="10"
-        android:hint="@string/Type_in_username"
+        android:hint="@string/menu_type_username"
         android:imeOptions="actionDone"
         android:inputType="textCapCharacters"
         android:singleLine="true" >

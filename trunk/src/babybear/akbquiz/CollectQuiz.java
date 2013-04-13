@@ -27,12 +27,14 @@ public class CollectQuiz extends Activity {
 	private boolean isSending = false;
 	Handler handler;
 
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.collect_quiz);
 
 	}
 
+	@Override
 	public void onStart() {
 		super.onStart();
 		handler = new Handler();
@@ -81,8 +83,9 @@ public class CollectQuiz extends Activity {
 					break;
 
 				case R.id.submit:
-					if (isSending)
+					if (isSending) {
 						return;
+					}
 					quiz.question = ((EditText) findViewById(R.id.question))
 							.getText().toString();
 					quiz.editor = ((EditText) findViewById(R.id.editor))
@@ -97,17 +100,19 @@ public class CollectQuiz extends Activity {
 							.getText().toString();
 
 					if (quiz == lastquiz
-							|| QuizContainder.isNewQuiz(quiz, lastquiz))
-						if (QuizContainder.isUseable(CollectQuiz.this, quiz)) {
-
+ || quiz.isNewQuiz(quiz, lastquiz)) {
+						if (quiz.isUseable(CollectQuiz.this)) {
+							
 							isSending = true;
-							Toast.makeText(CollectQuiz.this, "正在提交...", Toast.LENGTH_LONG).show();
+							Toast.makeText(CollectQuiz.this, R.string.collect_sending, Toast.LENGTH_LONG).show();
 							new Thread() {
+								@Override
 								public void run() {
 									submit();
 								}
 							}.start();
 						}
+					}
 					break;
 				}
 			}
@@ -146,8 +151,9 @@ public class CollectQuiz extends Activity {
 			@Override
 			public void onRatingChanged(RatingBar arg0, float rating,
 					boolean fromUser) {
-				if (!fromUser)
+				if (!fromUser) {
 					return;
+				}
 				quiz.difficulty = (int) (rating*2);
 
 			}
@@ -200,7 +206,8 @@ public class CollectQuiz extends Activity {
 					public void run() {
 						reset();
 						isSending = false;
-						Toast.makeText(CollectQuiz.this, "提交成功",
+						Toast.makeText(CollectQuiz.this,
+								R.string.collect_success,
 								Toast.LENGTH_LONG).show();
 					}
 
@@ -211,7 +218,8 @@ public class CollectQuiz extends Activity {
 					@Override
 					public void run() {
 						isSending = false;
-						Toast.makeText(CollectQuiz.this, "提交失败",
+						Toast.makeText(CollectQuiz.this,
+								R.string.collect_fail,
 								Toast.LENGTH_LONG).show();
 					}
 
@@ -231,7 +239,9 @@ public class CollectQuiz extends Activity {
 				@Override
 				public void run() {
 					isSending = false;
-					Toast.makeText(CollectQuiz.this, "提交失败", Toast.LENGTH_LONG)
+					Toast.makeText(CollectQuiz.this,
+							R.string.collect_fail,
+							Toast.LENGTH_LONG)
 							.show();
 				}
 
@@ -270,7 +280,7 @@ public class CollectQuiz extends Activity {
 	 * @author BabyBeaR
 	 *
 	 */
-	static class QuizContainder {
+	class QuizContainder {
 		public int difficulty = 0;
 		public String editor;
 		public String question;
@@ -278,12 +288,12 @@ public class CollectQuiz extends Activity {
 		public boolean akb = false, ske = false, nmb = false, hkt = false,
 				sdn = false, snh = false, jkt = false, ngzk = false;
 
-		static int LIMIT_TOP_EDITOR = 32;
-		static int LIMIT_LOW_EDITOR = 2;
-		static int LIMIT_TOP_QUESTION = 200;
-		static int LIMIT_LOW_QUESTION = 7;
-		static int LIMIT_TOP_ANSWER = 50;
-		static int LIMIT_LOW_ANSWER = 2;
+		static final int LIMIT_TOP_EDITOR = 32;
+		static final int LIMIT_LOW_EDITOR = 2;
+		static final int LIMIT_TOP_QUESTION = 200;
+		static final int LIMIT_LOW_QUESTION = 7;
+		static final int LIMIT_TOP_ANSWER = 50;
+		static final int LIMIT_LOW_ANSWER = 2;
 
 		/**
 		 * 获取本题目groups数组的JSON字符串
@@ -339,10 +349,12 @@ public class CollectQuiz extends Activity {
 		 * @param q2 要比较的问题2
 		 * @return true两个问题不同是一个新问题  false两个问题相同
 		 */
-		static boolean isNewQuiz(QuizContainder q1, QuizContainder q2) {
-			if (q1.question.equalsIgnoreCase(q2.question))
-				if(q1.options[0].equalsIgnoreCase(q2.options[0]))
+		boolean isNewQuiz(QuizContainder q1, QuizContainder q2) {
+			if (q1.question.equalsIgnoreCase(q2.question)) {
+				if(q1.options[0].equalsIgnoreCase(q2.options[0])) {
 					return false;
+				}
+			}
 			return true;
 		}
 
@@ -350,39 +362,46 @@ public class CollectQuiz extends Activity {
 		/**
 		 * 问题是否符合要求
 		 * @param context Context对象 只是为了发送Toast
-		 * @param q1 要判断的问题
 		 * @return true 符合 false 不符合
 		 */
-		static boolean isUseable(Context context, QuizContainder q1) {
-			if (q1.difficulty <= 0 || q1.difficulty > 10) {
-				Toast.makeText(context, "请设置难度", Toast.LENGTH_SHORT).show();
+		boolean isUseable(Context context) {
+			if (this.difficulty <= 0 || this.difficulty > 10) {
+				Toast.makeText(context,
+						R.string.collect_err_diffculty,
+						Toast.LENGTH_SHORT).show();
 				return false;
 			}
-			if (q1.editor.length() > LIMIT_TOP_EDITOR
-					|| q1.editor.length() < LIMIT_LOW_EDITOR) {
+			if (this.editor.length() > LIMIT_TOP_EDITOR
+					|| this.editor.length() < LIMIT_LOW_EDITOR) {
+
 				Toast.makeText(
 						context,
-						"作者名需要大于等于" + LIMIT_LOW_EDITOR + "且小于等于"
-								+ LIMIT_TOP_EDITOR + "字", Toast.LENGTH_SHORT)
+						getString(R.string.collect_err_editor,
+								LIMIT_LOW_EDITOR,
+								LIMIT_TOP_EDITOR),
+						Toast.LENGTH_SHORT)
 						.show();
 				return false;
 			}
-			if (q1.question.length() > LIMIT_TOP_QUESTION
-					|| q1.question.length() < LIMIT_LOW_QUESTION) {
+			if (this.question.length() > LIMIT_TOP_QUESTION
+					|| this.question.length() < LIMIT_LOW_QUESTION) {
 				Toast.makeText(
 						context,
-						"问题内容需要大于等于" + LIMIT_LOW_QUESTION + "且小于等于"
-								+ LIMIT_TOP_QUESTION + "字", Toast.LENGTH_SHORT)
+						getString(R.string.collect_err_question,
+								LIMIT_LOW_QUESTION,
+								LIMIT_TOP_QUESTION),
+						Toast.LENGTH_SHORT)
 						.show();
 				return false;
 			}
 			for (int i = 0; i < 4; i++) {
-				if (q1.options[i].length() > LIMIT_TOP_ANSWER
-						|| q1.options[i].length() < LIMIT_LOW_ANSWER) {
+				if (this.options[i].length() > LIMIT_TOP_ANSWER
+						|| this.options[i].length() < LIMIT_LOW_ANSWER) {
 					Toast.makeText(
 							context,
-							"选项内容需要大于等于" + LIMIT_LOW_ANSWER + "且小于等于"
-									+ LIMIT_TOP_ANSWER + "字",
+							getString(R.string.collect_err_options,
+									LIMIT_LOW_ANSWER,
+									LIMIT_TOP_ANSWER),
 							Toast.LENGTH_SHORT).show();
 					return false;
 				}

@@ -73,7 +73,6 @@ public class ConfigActivity extends Activity {
 	final static String DATABASE_VER = "databasever.json";
 	final static String APP_SAVENAME = "/download/akbquiz.apk";
 	final static int REQUESTCODE_IMAGE = 1;
-	static Music defaultMusic = null;
 
 	int loopmode = 0;
 	Button loopmodeBtn;
@@ -98,6 +97,10 @@ public class ConfigActivity extends Activity {
 	private Handler handler = new Handler();
 	File customBgImage;
 
+	AlertDialog aboutFHS;
+	AlertDialog license;
+
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.config);
@@ -108,39 +111,29 @@ public class ConfigActivity extends Activity {
 				+ "/custom_bg.png");
 
 		try {
-			if (!customBgImage.getParentFile().exists())
+			if (!customBgImage.getParentFile().exists()) {
 				customBgImage.getParentFile().mkdirs();
-			if (!customBgImage.exists())
+			}
+			if (!customBgImage.exists()) {
 				customBgImage.createNewFile();
-		} catch (IOException e) {
+			}
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
+
 		Log.d(TAG, "File custom_bg.png exists :" + customBgImage.exists());
 		cfgflipper = (ViewFlipper) findViewById(R.id.main);
 		sp_cfg = getSharedPreferences(PreferenceName_cfg, Context.MODE_PRIVATE);
 
 		cfgEditor = sp_cfg.edit();
 
-		Music defaultbg = new Music();
-
-		defaultbg._ID = -1;
-		defaultbg.ALBUM = "ここにいたこと";
-		defaultbg.ARTIST = "AKB48";
-		defaultbg.DATA = "android.resource://" + getPackageName() + "/"
-				+ R.raw.bg;
-		defaultbg.DURATION = 273100;
-		defaultbg.TITLE = "少女たちよ(默认背景音乐)";
-		defaultbg.isExist = true;
-
-		defaultMusic = defaultbg;
-
 		init();
 		weiboInit();
 
 	}
 
+	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == REQUESTCODE_IMAGE) {
@@ -152,8 +145,7 @@ public class ConfigActivity extends Activity {
 				}
 				cfgEditor.putBoolean(Database.KEY_use_custom_background, true);
 				cfgEditor.commit();
-				cfgflipper.setBackgroundDrawable(Drawable
-						.createFromPath(customBgImage.getPath()));
+				cfgflipper.setBackgroundDrawable(Drawable.createFromPath(customBgImage.getPath()));
 			}
 			return;
 		}
@@ -163,6 +155,7 @@ public class ConfigActivity extends Activity {
 		}
 	}
 
+	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BACK:
@@ -195,29 +188,26 @@ public class ConfigActivity extends Activity {
 		bgm_toggle.setChecked(sp_cfg.getBoolean(Database.KEY_switch_bg, true));
 		sound_toggle.setChecked(sp_cfg.getBoolean(Database.KEY_switch_sound,
 				true));
-		vibration_toggle.setChecked(sp_cfg.getBoolean(
-				Database.KEY_switch_vibration, true));
+		vibration_toggle.setChecked(sp_cfg.getBoolean(Database.KEY_switch_vibration,
+				true));
 		bgm_vol.setProgress(sp_cfg.getInt(Database.KEY_vol_bg, 10));
 		sound_vol.setProgress(sp_cfg.getInt(Database.KEY_vol_sound, 10));
-		
-		//循环模式
+
+		// 循环模式
 		loopmode = sp_cfg.getInt(Database.KEY_bgm_loopmode, BgMusic.MODE_LOOP);
 		switch (loopmode) {
 		case BgMusic.MODE_LOOP:
-			((Button) findViewById(R.id.config_loopmode))
-					.setText(R.string.config_loop);
+			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_loop);
 		case BgMusic.MODE_RANDOM:
-			((Button) findViewById(R.id.config_loopmode))
-					.setText(R.string.config_random);
+			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_random);
 		case BgMusic.MODE_SINGLE:
-			((Button) findViewById(R.id.config_loopmode))
-					.setText(R.string.config_single);
+			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_single);
 		}
-		//更换背景图片
-		
-		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false))
-			cfgflipper.setBackgroundDrawable(Drawable
-					.createFromPath(customBgImage.getPath()));
+		// 更换背景图片
+
+		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
+			cfgflipper.setBackgroundDrawable(Drawable.createFromPath(customBgImage.getPath()));
+		}
 
 		OnClickListener clickListener = new OnClickListener() {
 
@@ -239,12 +229,10 @@ public class ConfigActivity extends Activity {
 					break;
 				case R.id.config_vibration_switch:
 					boolean isVibOn = ((ToggleButton) v).isChecked();
-					cfgEditor
-							.putBoolean(Database.KEY_switch_vibration, isVibOn);
+					cfgEditor.putBoolean(Database.KEY_switch_vibration, isVibOn);
 					break;
 				case R.id.config_playlist:
-					if (Environment.MEDIA_MOUNTED.equals(Environment
-							.getExternalStorageState())) {
+					if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
 						if (!isPlaylistChanged) {
 							loadPlaylistEditor();
 						}
@@ -252,7 +240,8 @@ public class ConfigActivity extends Activity {
 						cfgflipper.showNext();
 
 					} else {
-						Toast.makeText(ConfigActivity.this, "SD卡不可用",
+						Toast.makeText(ConfigActivity.this,
+								R.string.sdcard_unavailable,
 								Toast.LENGTH_SHORT).show();
 					}
 					break;
@@ -304,6 +293,26 @@ public class ConfigActivity extends Activity {
 							CalendarEditor.class);
 					startActivity(calendar);
 					break;
+				case R.id.who_are_we:
+					if (aboutFHS == null) {
+						aboutFHS = (new AlertDialog.Builder(ConfigActivity.this)).setTitle(R.string.who_are_we)
+								.setMessage(R.string.about_fhs)
+								.setIcon(R.drawable.fhs_logo_48)
+								.setPositiveButton(android.R.string.ok, null)
+								.create();
+					}
+					aboutFHS.show();
+					break;
+				case R.id.licence:
+					if (license == null) {
+						license = (new AlertDialog.Builder(ConfigActivity.this)).setTitle(R.string.license_title)
+								.setIcon(android.R.drawable.stat_sys_warning)
+								.setMessage(R.string.license)
+								.setPositiveButton(android.R.string.ok, null)
+								.create();
+					}
+					license.show();
+					break;
 				}
 			}
 
@@ -314,26 +323,18 @@ public class ConfigActivity extends Activity {
 		vibration_toggle.setOnClickListener(clickListener);
 		config_playlist.setOnClickListener(clickListener);
 
-		((Button) findViewById(R.id.config_back))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_musiclist_back))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_playlist_back))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_update))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_quiz_submit))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_ranking))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_loopmode))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_change_bgimage))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_restore_bgimage))
-				.setOnClickListener(clickListener);
-		((Button) findViewById(R.id.call_calendar_editor))
-				.setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_back)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_musiclist_back)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_playlist_back)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_update)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_quiz_submit)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_ranking)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_loopmode)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_change_bgimage)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.config_restore_bgimage)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.call_calendar_editor)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.who_are_we)).setOnClickListener(clickListener);
+		((Button) findViewById(R.id.licence)).setOnClickListener(clickListener);
 
 		OnSeekBarChangeListener l_seekbar = new OnSeekBarChangeListener() {
 
@@ -405,28 +406,27 @@ public class ConfigActivity extends Activity {
 	private void changeLoopMode() {
 
 		loopmode++;
-		if (loopmode > 2)
+		if (loopmode > 2) {
 			loopmode = 0;
+		}
 
 		Log.d("", "changeLoopMode : " + loopmode);
 		switch (loopmode) {
 		case BgMusic.MODE_LOOP:
-			((Button) findViewById(R.id.config_loopmode))
-					.setText(R.string.config_loop);
+			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_loop);
 			break;
 		case BgMusic.MODE_RANDOM:
-			((Button) findViewById(R.id.config_loopmode))
-					.setText(R.string.config_random);
+			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_random);
 			break;
 		case BgMusic.MODE_SINGLE:
-			((Button) findViewById(R.id.config_loopmode))
-					.setText(R.string.config_single);
+			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_single);
 			break;
 		}
 		cfgEditor.putInt(Database.KEY_bgm_loopmode, loopmode);
 		cfgEditor.commit();
 		Message msg = BgMusic.bgHandler.obtainMessage(loopmode,
-				BgMusic.BGHandler.LOOP_CHANGE, 0);
+				BgMusic.BGHandler.LOOP_CHANGE,
+				0);
 		BgMusic.bgHandler.sendMessage(msg);
 
 	}
@@ -440,26 +440,24 @@ public class ConfigActivity extends Activity {
 		playlistList = loadPlaylist();
 
 		PlaylistAdapter playlistAdapter = new PlaylistAdapter(this,
-				playlistList, new OnClickListener() {
+				playlistList,
+				new OnClickListener() {
 					@Override
 					public void onClick(View v) {
 						int position = Integer.decode((String) v.getTag());
-						// Toast.makeText(Config.this, "a click on : "+position,
-						// Toast.LENGTH_SHORT).show();
 						onModifing = position;
 						cfgflipper.showNext();
-						((TextView) findViewById(R.id.current))
-								.setText("正在操作第 " + (onModifing + 1) + " 项 \""
-										+ playlistList.get(onModifing).TITLE
-										+ " \":");
-						((Button) findViewById(R.id.config_playlist_remove))
-								.setText("移除");
+						((TextView) findViewById(R.id.current)).setText(getString(R.string.config_bgm_onmodifing,
+								(onModifing + 1),
+								playlistList.get(onModifing).TITLE));
+						((Button) findViewById(R.id.config_playlist_remove)).setText(R.string.remove);
 					}
 				});
 		playlistView = (ListView) findViewById(R.id.playlist);
 		playlistView.setAdapter(playlistAdapter);
 
-		PlaylistAdapter musiclistAdapter = new PlaylistAdapter(this, musicList,
+		PlaylistAdapter musiclistAdapter = new PlaylistAdapter(this,
+				musicList,
 				new OnClickListener() {
 
 					@Override
@@ -469,12 +467,12 @@ public class ConfigActivity extends Activity {
 								+ position + " in Musiclist");
 						Music temp = musicList.get(position);
 						// playlistAdapter.;
-						if (onModifing == playlistList.size())
+						if (onModifing == playlistList.size()) {
 							playlistList.add(temp);
-						else
+						} else {
 							playlistList.set(onModifing, temp);
-						PlaylistAdapter adapter = (PlaylistAdapter) playlistView
-								.getAdapter();
+						}
+						PlaylistAdapter adapter = (PlaylistAdapter) playlistView.getAdapter();
 						adapter.remove(adapter.getItem(onModifing));
 						adapter.insert(temp, onModifing);
 						savePlaylist();
@@ -487,42 +485,39 @@ public class ConfigActivity extends Activity {
 		ListView musiclistView = (ListView) findViewById(R.id.musiclist);
 		musiclistView.setAdapter(musiclistAdapter);
 
-		((Button) findViewById(R.id.config_playlist_add))
-				.setOnClickListener(new OnClickListener() {
+		((Button) findViewById(R.id.config_playlist_add)).setOnClickListener(new OnClickListener() {
 
-					@Override
-					public void onClick(View v) {
-						int position = playlistList.size();
-						onModifing = position;
-						cfgflipper.showNext();
-						((TextView) findViewById(R.id.current)).setText("添加:");
-						((Button) findViewById(R.id.config_playlist_remove))
-								.setText("取消");
-					}
+			@Override
+			public void onClick(View v) {
+				int position = playlistList.size();
+				onModifing = position;
+				cfgflipper.showNext();
+				((TextView) findViewById(R.id.current)).setText(R.string.config_bgm_add);
+				((Button) findViewById(R.id.config_playlist_remove)).setText(android.R.string.cancel);
+			}
 
-				});
+		});
 
-		((Button) findViewById(R.id.config_playlist_remove))
-				.setOnClickListener(new OnClickListener() {
+		((Button) findViewById(R.id.config_playlist_remove)).setOnClickListener(new OnClickListener() {
 
-					@Override
-					public void onClick(View v) {
-						if (onModifing != playlistList.size()) {
+			@Override
+			public void onClick(View v) {
+				if (onModifing != playlistList.size()) {
 
-							playlistList.remove(onModifing);
+					playlistList.remove(onModifing);
 
-							// PlaylistAdapter adapter = (PlaylistAdapter)
-							// playlistView
-							// .getAdapter();
-							// adapter.remove(adapter.getItem(onModifing));
-							savePlaylist();
+					// PlaylistAdapter adapter = (PlaylistAdapter)
+					// playlistView
+					// .getAdapter();
+					// adapter.remove(adapter.getItem(onModifing));
+					savePlaylist();
 
-							isPlaylistChanged = true;
-						}
-						cfgflipper.showPrevious();
-					}
+					isPlaylistChanged = true;
+				}
+				cfgflipper.showPrevious();
+			}
 
-				});
+		});
 
 	}
 
@@ -545,8 +540,7 @@ public class ConfigActivity extends Activity {
 	private ArrayList<Music> queryMusics() {
 		ArrayList<Music> musiclistResult = new ArrayList<Music>();
 		ContentResolver cr = this.getContentResolver();
-		Cursor musics = cr.query(
-				MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+		Cursor musics = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
 				new String[] {
 						MediaStore.Audio.Media._ID, // int
 						MediaStore.Audio.Media.TITLE,
@@ -556,28 +550,22 @@ public class ConfigActivity extends Activity {
 						MediaStore.Audio.Media.DATA, // String
 						MediaStore.Audio.Media.DISPLAY_NAME, // String
 						MediaStore.Audio.Media.MIME_TYPE // String
-				}, MediaStore.Audio.Media.IS_MUSIC + " = 1 AND "
-						+ MediaStore.Audio.Media.DURATION + " > 10000", null,
+				},
+				MediaStore.Audio.Media.IS_MUSIC + " = 1 AND "
+						+ MediaStore.Audio.Media.DURATION + " > 10000",
+				null,
 				MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
 		Log.d("", "musics : " + musics.getCount());
-
-		musiclistResult.add(defaultMusic);
 
 		musics.moveToFirst();
 		while (!musics.isAfterLast()) {
 			Music temp = new Music();
-			temp._ID = musics.getInt(musics
-					.getColumnIndex(MediaStore.Audio.Media._ID));
-			temp.ALBUM = musics.getString(musics
-					.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-			temp.ARTIST = musics.getString(musics
-					.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-			temp.DATA = musics.getString(musics
-					.getColumnIndex(MediaStore.Audio.Media.DATA));
-			temp.DURATION = musics.getLong(musics
-					.getColumnIndex(MediaStore.Audio.Media.DURATION));
-			temp.TITLE = musics.getString(musics
-					.getColumnIndex(MediaStore.Audio.Media.TITLE));
+			temp._ID = musics.getInt(musics.getColumnIndex(MediaStore.Audio.Media._ID));
+			temp.ALBUM = musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+			temp.ARTIST = musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+			temp.DATA = musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.DATA));
+			temp.DURATION = musics.getLong(musics.getColumnIndex(MediaStore.Audio.Media.DURATION));
+			temp.TITLE = musics.getString(musics.getColumnIndex(MediaStore.Audio.Media.TITLE));
 			temp.isExist = true;
 
 			musiclistResult.add(temp);
@@ -595,8 +583,7 @@ public class ConfigActivity extends Activity {
 	private ArrayList<Music> loadPlaylist() {
 		ArrayList<Music> playlist = new ArrayList<Music>();
 		try {
-			JSONArray arr = new JSONArray(sp_cfg.getString("playlist",
-					"[\"default\"]"));
+			JSONArray arr = new JSONArray(sp_cfg.getString("playlist", "[]"));
 			for (int i = 0, length = arr.length(); i < length; i++) {
 				Log.d("", " i = " + i);
 				Music temp = matchMusic(arr.getString(i));
@@ -605,9 +592,9 @@ public class ConfigActivity extends Activity {
 
 			Log.d("", "playlist.size() = " + playlist.size());
 
-		} catch (JSONException e) {
+		}
+		catch (JSONException e) {
 			e.printStackTrace();
-			playlist.add(defaultMusic);
 			// return playlist;
 		}
 		return playlist;
@@ -620,11 +607,10 @@ public class ConfigActivity extends Activity {
 	 * @return 音乐信息
 	 */
 	private Music matchMusic(String DATA) {
-		if (DATA.equals("default"))
-			return defaultMusic;
 		for (int i = 0, length = musicList.size(); i < length; i++) {
-			if (DATA.equals(musicList.get(i).DATA))
+			if (DATA.equals(musicList.get(i).DATA)) {
 				return musicList.get(i);
+			}
 		}
 		return null;
 	}
@@ -633,22 +619,23 @@ public class ConfigActivity extends Activity {
 	 * ListView的适配器
 	 * 
 	 * @author BabyBeaR
-	 * 
 	 */
 	private class PlaylistAdapter extends ArrayAdapter<Music> {
 		OnClickListener l;
 
-		public PlaylistAdapter(Context context, List<Music> objects,
+		public PlaylistAdapter(Context context,
+				List<Music> objects,
 				OnClickListener listener) {
 			super(context, 0, objects);
 			l = listener;
 		}
 
+		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View view = convertView;
 			if (view == null) {
-				view = LayoutInflater.from(getContext()).inflate(
-						R.layout.playlist_item, null);
+				view = LayoutInflater.from(getContext())
+						.inflate(R.layout.playlist_item, null);
 			}
 			Music m = getItem(position);
 
@@ -673,7 +660,6 @@ public class ConfigActivity extends Activity {
 	 * 音乐的信息
 	 * 
 	 * @author BabyBeaR
-	 * 
 	 */
 	@SuppressWarnings("unused")
 	private class Music {
@@ -698,10 +684,8 @@ public class ConfigActivity extends Activity {
 					weiboSsoHandler.authorize(new AuthDialogListener());
 				} else {
 					AccessTokenKeeper.clear(ConfigActivity.this);
-					MainMenu.weiboAccessToken = AccessTokenKeeper
-							.readAccessToken(ConfigActivity.this);
-					weibo_btn.setText(ConfigActivity.this
-							.getString(R.string.weibo_linkto));
+					MainMenu.weiboAccessToken = AccessTokenKeeper.readAccessToken(ConfigActivity.this);
+					weibo_btn.setText(ConfigActivity.this.getString(R.string.weibo_linkto));
 				}
 			}
 		});
@@ -715,7 +699,6 @@ public class ConfigActivity extends Activity {
 	 * 新浪微博认证的回调对象
 	 * 
 	 * @author BabyBeaR
-	 * 
 	 */
 	class AuthDialogListener implements WeiboAuthListener {
 
@@ -726,31 +709,35 @@ public class ConfigActivity extends Activity {
 			MainMenu.weiboAccessToken = new Oauth2AccessToken(token, expires_in);
 			if (MainMenu.weiboAccessToken.isSessionValid()) {
 
-				((Button) findViewById(R.id.config_weibo))
-						.setText(ConfigActivity.this
-								.getString(R.string.weibo_linked));
+				((Button) findViewById(R.id.config_weibo)).setText(ConfigActivity.this.getString(R.string.weibo_linked));
 				AccessTokenKeeper.keepAccessToken(ConfigActivity.this,
 						MainMenu.weiboAccessToken);
-				Toast.makeText(ConfigActivity.this, "认证成功", Toast.LENGTH_SHORT)
+				Toast.makeText(ConfigActivity.this,
+						R.string.weibo_auth_success,
+						Toast.LENGTH_SHORT)
 						.show();
 			}
 		}
 
 		@Override
 		public void onError(WeiboDialogError e) {
-			Toast.makeText(getApplicationContext(), "认证错误 : " + e.getMessage(),
+			Toast.makeText(getApplicationContext(),
+					R.string.weibo_err_auth + e.getMessage(),
 					Toast.LENGTH_LONG).show();
 		}
 
 		@Override
 		public void onCancel() {
-			Toast.makeText(getApplicationContext(), "认证取消", Toast.LENGTH_LONG)
+			Toast.makeText(getApplicationContext(),
+					R.string.weibo_err_cancel,
+					Toast.LENGTH_LONG)
 					.show();
 		}
 
 		@Override
 		public void onWeiboException(WeiboException e) {
-			Toast.makeText(getApplicationContext(), "认证异常 : " + e.getMessage(),
+			Toast.makeText(getApplicationContext(),
+					R.string.weibo_err_auth + e.getMessage(),
 					Toast.LENGTH_LONG).show();
 		}
 
@@ -761,39 +748,35 @@ public class ConfigActivity extends Activity {
 	 */
 	private void doNewVersionUpdate() {
 		StringBuffer sb = new StringBuffer();
-		sb.append("当前版本:");
-		sb.append(verName);
-		sb.append(" Code:");
-		sb.append(verCode);
-		sb.append(", 发现新版本:");
-		sb.append(newVerName);
-		sb.append(" Code:");
-		sb.append(newVerCode);
-		sb.append(", 是否更新?");
-		Dialog dialog = new AlertDialog.Builder(this)
-				.setTitle("软件更新")
-				.setMessage(sb.toString())
+		Dialog dialog = new AlertDialog.Builder(this).setTitle(R.string.update_title)
+				.setMessage(getString(R.string.update_have_update,
+						verName,
+						verCode,
+						newVerName,
+						newVerCode))
 				// 设置内容
-				.setPositiveButton("更新",// 设置确定按钮
+				.setPositiveButton(R.string.update_do_update,// 设置确定按钮
 						new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog,
 									int which) {
 								pBar = new ProgressDialog(ConfigActivity.this);
-								pBar.setTitle("正在下载");
-								pBar.setMessage("请稍候...");
+								pBar.setTitle(R.string.update_downloading);
+								pBar.setMessage(getString(R.string.update_waiting));
 								pBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 								pBar.setMax(100);
 								downFile(updateURL);
 							}
 						})
-				.setNegativeButton("暂不更新",
+				.setNegativeButton(R.string.update_later,
 						new DialogInterface.OnClickListener() {
+							@Override
 							public void onClick(DialogInterface dialog,
 									int whichButton) {
 
 							}
-						}).create();
+						})
+				.create();
 		dialog.show();
 	}
 
@@ -801,22 +784,20 @@ public class ConfigActivity extends Activity {
 	 * 没有发现新版本要做的
 	 */
 	private void notNewVersionShow() {
-		StringBuffer sb = new StringBuffer();
-		sb.append("当前版本:");
-		sb.append(verName);
-		sb.append(" Code:");
-		sb.append(verCode);
-		sb.append(",\n已是最新版,无需更新!");
-		Dialog dialog = new AlertDialog.Builder(this).setTitle("软件更新")
-				.setMessage(sb.toString())// 设置内容
-				.setPositiveButton("确定",// 设置确定按钮
+		Dialog dialog = new AlertDialog.Builder(this).setTitle(R.string.update_title)
+				.setMessage(getString(R.string.update_isnewest,
+						verName,
+						verCode))
+				// 设置内容
+				.setPositiveButton(android.R.string.ok,// 设置确定按钮
 						new DialogInterface.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog,
 									int which) {
 
 							}
-						}).create();
+						})
+				.create();
 		// 显示对话框
 		dialog.show();
 	}
@@ -834,6 +815,7 @@ public class ConfigActivity extends Activity {
 			private long length;
 			private long count = 0;
 
+			@Override
 			public void run() {
 				HttpClient client = new DefaultHttpClient();
 				// HttpGet get = ;
@@ -845,8 +827,7 @@ public class ConfigActivity extends Activity {
 					InputStream is = entity.getContent();
 					FileOutputStream fileOutputStream = null;
 					if (is != null) {
-						File file = new File(
-								Environment.getExternalStorageDirectory(),
+						File file = new File(Environment.getExternalStorageDirectory(),
 								APP_SAVENAME);
 						fileOutputStream = new FileOutputStream(file);
 						byte[] buf = new byte[1024];
@@ -856,6 +837,7 @@ public class ConfigActivity extends Activity {
 							fileOutputStream.write(buf, 0, ch);
 							count += ch;
 							handler.post(new Runnable() {
+								@Override
 								public void run() {
 									pBar.setProgress((int) (count * 100 / length));
 								}
@@ -868,15 +850,18 @@ public class ConfigActivity extends Activity {
 					}
 					{
 						handler.post(new Runnable() {
+							@Override
 							public void run() {
 								pBar.cancel();
 								update();
 							}
 						});
 					}
-				} catch (ClientProtocolException e) {
+				}
+				catch (ClientProtocolException e) {
 					e.printStackTrace();
-				} catch (IOException e) {
+				}
+				catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
@@ -888,8 +873,8 @@ public class ConfigActivity extends Activity {
 	 */
 	void update() {
 		Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.setDataAndType(Uri.fromFile(new File(Environment
-				.getExternalStorageDirectory(), APP_SAVENAME)),
+		intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStorageDirectory(),
+				APP_SAVENAME)),
 				"application/vnd.android.package-archive");
 		startActivity(intent);
 	}
@@ -903,9 +888,10 @@ public class ConfigActivity extends Activity {
 	public int getVerCode(Context context) {
 		int verCode = -1;
 		try {
-			verCode = context.getPackageManager().getPackageInfo(
-					this.getPackageName(), 0).versionCode;
-		} catch (NameNotFoundException e) {
+			verCode = context.getPackageManager()
+					.getPackageInfo(this.getPackageName(), 0).versionCode;
+		}
+		catch (NameNotFoundException e) {
 			Log.e(TAG, e.getMessage());
 		}
 		return verCode;
@@ -920,9 +906,10 @@ public class ConfigActivity extends Activity {
 	public String getVerName(Context context) {
 		String verName = "";
 		try {
-			verName = context.getPackageManager().getPackageInfo(
-					this.getPackageName(), 0).versionName;
-		} catch (NameNotFoundException e) {
+			verName = context.getPackageManager()
+					.getPackageInfo(this.getPackageName(), 0).versionName;
+		}
+		catch (NameNotFoundException e) {
 			Log.e(TAG, e.getMessage());
 		}
 		return verName;
@@ -943,13 +930,15 @@ public class ConfigActivity extends Activity {
 					newVerCode = Integer.parseInt(obj.getString("verCode"));
 					newVerName = obj.getString("verName");
 					updateURL = obj.getString("apkurl");
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					newVerCode = -1;
 					newVerName = "";
 					return false;
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Log.e(TAG, e.getMessage());
 			return false;
 		}
@@ -974,8 +963,9 @@ public class ConfigActivity extends Activity {
 		HttpResponse response = client.execute(new HttpGet(url));
 		HttpEntity entity = response.getEntity();
 		if (entity != null) {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					entity.getContent(), "UTF-8"), 8192);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent(),
+					"UTF-8"),
+					8192);
 
 			String line = null;
 			while ((line = reader.readLine()) != null) {

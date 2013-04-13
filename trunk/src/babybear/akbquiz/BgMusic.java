@@ -26,6 +26,7 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+
 public class BgMusic extends Service {
 	private static final String TAG = "BgMusic";
 	public static final int MODE_LOOP = 0, MODE_RANDOM = 1, MODE_SINGLE = 2;
@@ -59,14 +60,15 @@ public class BgMusic extends Service {
 			switch (mode) {
 			case MODE_LOOP:
 				PlayingNo++;
-				if (PlayingNo >= playlistLength)
+				if (PlayingNo >= playlistLength) {
 					PlayingNo = 0;
+				}
 				break;
 			case MODE_RANDOM:
 				PlayingNo = r.nextInt(playlistLength);
 				break;
 			case MODE_SINGLE:
-				
+
 				break;
 			}
 			player.release();
@@ -76,21 +78,22 @@ public class BgMusic extends Service {
 				if (playlistLength > 0) {
 					player = MediaPlayer.create(BgMusic.this,
 							playlist[PlayingNo]);
-					if (isOn)
+					player.setLooping(false);
+					player.setOnCompletionListener(CompL);
+					if (isOn) {
 						player.start();
-				} else {
-					player = MediaPlayer.create(
-							BgMusic.this,
-							Uri.parse("android.resource://" + getPackageName()
-									+ "/" + R.raw.bg));
+					}
 				}
-			} catch (IllegalArgumentException e) {
+			}
+			catch (IllegalArgumentException e) {
 				errorToast(e);
 				e.printStackTrace();
-			} catch (SecurityException e) {
+			}
+			catch (SecurityException e) {
 				errorToast(e);
 				e.printStackTrace();
-			} catch (IllegalStateException e) {
+			}
+			catch (IllegalStateException e) {
 				errorToast(e);
 				e.printStackTrace();
 			}
@@ -106,7 +109,8 @@ public class BgMusic extends Service {
 	OnErrorListener ErrL = new MediaPlayer.OnErrorListener() {
 		@Override
 		public boolean onError(MediaPlayer mp, int what, int extra) {
-			Toast.makeText(BgMusic.this, "Unexpected media player error.",
+			Toast.makeText(BgMusic.this,
+					"Unexpected media player error.",
 					Toast.LENGTH_SHORT).show();
 			Log.d(TAG, "Unexpected media player error.");
 			return false;
@@ -123,8 +127,7 @@ public class BgMusic extends Service {
 
 		// Returns a list of application processes that are running on the
 		// device
-		List<RunningAppProcessInfo> appProcesses = activityManager
-				.getRunningAppProcesses();
+		List<RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
 		if (appProcesses == null) {
 			return false;
 		}
@@ -145,13 +148,15 @@ public class BgMusic extends Service {
 		try {
 			JSONArray arr = new JSONArray(uristr);
 			playlistLength = arr.length();
-			if (playlistLength == 0)
+			if (playlistLength == 0) {
 				return;
+			}
 			playlist = new Uri[playlistLength];
 			for (int i = 0; i < playlistLength; i++) {
 				playlist[i] = Uri.parse(arr.getString(i));
 			}
-		} catch (JSONException e) {
+		}
+		catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
@@ -166,8 +171,7 @@ public class BgMusic extends Service {
 		bgHandler = new BGHandler(this);
 		isRunning = true;
 		isScreenOn = true;
-		activityManager = (ActivityManager) this
-				.getSystemService(Context.ACTIVITY_SERVICE);
+		activityManager = (ActivityManager) this.getSystemService(Context.ACTIVITY_SERVICE);
 
 	}
 
@@ -177,26 +181,21 @@ public class BgMusic extends Service {
 
 		isOn = intent.getBooleanExtra(Database.KEY_switch_bg, true);
 
-		setPlaylist(getSharedPreferences("config", Context.MODE_PRIVATE)
-				.getString(Database.ColName_playlist, ""));
+		setPlaylist(getSharedPreferences("config", Context.MODE_PRIVATE).getString(Database.ColName_playlist,
+				""));
 		am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 		am.setStreamVolume(AudioManager.STREAM_MUSIC,
-				intent.getIntExtra(Database.KEY_vol_bg, 10), 0);
+				intent.getIntExtra(Database.KEY_vol_bg, 10),
+				0);
 
 		if (playlist != null) {
 			player = MediaPlayer.create(this, playlist[PlayingNo]);
-			if (isOn)
+			player.setLooping(false);
+			player.setOnCompletionListener(CompL);
+			if (isOn) {
 				player.start();
-		} else {
-			player = MediaPlayer.create(
-					this,
-					Uri.parse("android.resource://" + getPackageName() + "/"
-							+ R.raw.bg));
-			if (isOn)
-				player.start();
+			}
 		}
-		player.setLooping(false);
-		player.setOnCompletionListener(CompL);
 
 		// 注册锁屏广播接收
 		receiverScreen = new BroadcastReceiver() {
@@ -205,34 +204,38 @@ public class BgMusic extends Service {
 				final String action = intent.getAction();
 				if (Intent.ACTION_SCREEN_ON.equals(action)) {
 					Log.d(TAG, "SCREEN ON");
-					if (isOn)
-						if (!player.isPlaying())
+					if (isOn) {
+						if (!player.isPlaying()) {
 							player.start();
+						}
+					}
 					isScreenOn = true;
 				} else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
 					Log.d(TAG, "SCREEN OFF");
-					if (player.isPlaying())
+					if (player.isPlaying()) {
 						player.pause();
+					}
 					isScreenOn = false;
 				}
 
 			}
 		};
 
-		registerReceiver(receiverScreen, new IntentFilter(
-				Intent.ACTION_SCREEN_ON));
-		registerReceiver(receiverScreen, new IntentFilter(
-				Intent.ACTION_SCREEN_OFF));
+		registerReceiver(receiverScreen,
+				new IntentFilter(Intent.ACTION_SCREEN_ON));
+		registerReceiver(receiverScreen,
+				new IntentFilter(Intent.ACTION_SCREEN_OFF));
 
 		// 开始监测线程
 		packageName = getPackageName();
 		new Thread() {
+			@Override
 			public void run() {
 				Message msg = new Message();
 				try {
 					while (isRunning) {
 						msg = bgHandler.obtainMessage();
-						if (isScreenOn&&isAppOnForeground()) {
+						if (isScreenOn && isAppOnForeground()) {
 							msg.arg1 = BGHandler.PLAY;
 						} else {
 							msg.arg1 = BGHandler.PAUSE;
@@ -240,7 +243,8 @@ public class BgMusic extends Service {
 						bgHandler.sendMessage(msg);
 						Thread.sleep(1000);
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -252,10 +256,12 @@ public class BgMusic extends Service {
 	@Override
 	public void onDestroy() {
 		// Log.d(TAG, "--onDestroy--");
-		
+
 		isRunning = false;
 		bgHandler.removeCallbacksAndMessages(null);
-		player.release();
+		if (player != null) {
+			player.release();
+		}
 		this.unregisterReceiver(receiverScreen);
 
 	}
@@ -270,7 +276,7 @@ public class BgMusic extends Service {
 			mService = new WeakReference<BgMusic>(service);
 		}
 
-		public BGHandler(BgMusic service,Looper L) {
+		public BGHandler(BgMusic service, Looper L) {
 			super(L);
 			mService = new WeakReference<BgMusic>(service);
 		}
@@ -278,31 +284,44 @@ public class BgMusic extends Service {
 		@Override
 		public void handleMessage(Message msg) {
 			BgMusic theService = mService.get();
-			//Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : " + msg.what);
+			// Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : " +
+			// msg.what);
 			switch (msg.arg1) {
 			case PAUSE:
-				if (theService.player.isPlaying())
-					theService.player.pause();
+				if (theService.player != null) {
+					if (theService.player.isPlaying()) {
+						theService.player.pause();
+					}
+				}
 				break;
 			case PLAY:
-				if (!theService.player.isPlaying())
-					if (theService.isOn)
-						theService.player.start();
+				if (theService.player != null) {
+					if (!theService.player.isPlaying()) {
+							if (theService.isOn) {
+								theService.player.start();
+						}
+					}
+				}
 				break;
 
 			case VOL_CHANGE:
 				theService.am.setStreamVolume(AudioManager.STREAM_MUSIC,
-						msg.what, 0);
+						msg.what,
+						0);
 				break;
 			case SWITCH_CHANGE:
 				switch (msg.what) {
 				case 0:
 					theService.isOn = false;
-					theService.player.pause();
+					if (theService.player != null) {
+						theService.player.pause();
+					}
 					break;
 				case 1:
 					theService.isOn = true;
-					theService.player.start();
+					if (theService.player != null) {
+						theService.player.start();
+					}
 					break;
 				}
 				break;
@@ -311,26 +330,23 @@ public class BgMusic extends Service {
 				break;
 			case PLAYLIST_CHANGE:
 				if (theService.player != null) {
-					if (theService.player.isPlaying())
+					if (theService.player.isPlaying()) {
 						theService.player.stop();
+					}
 					theService.player.release();
 				}
 
 				theService.PlayingNo = 0;
-				theService.setPlaylist(
-						theService.getSharedPreferences("config", Context.MODE_PRIVATE)
+				theService.setPlaylist(theService.getSharedPreferences("config",
+						Context.MODE_PRIVATE)
 						.getString(Database.ColName_playlist, ""));
 
 				if (theService.playlistLength > 0) {
 					theService.player = MediaPlayer.create(theService,
 							theService.playlist[theService.PlayingNo]);
-					if (theService.isOn)
+					if (theService.isOn) {
 						theService.player.start();
-				} else {
-					theService.player = MediaPlayer.create(
-							theService,
-							Uri.parse("android.resource://" + theService.getPackageName()
-									+ "/" + R.raw.bg));
+					}
 				}
 
 				theService.player.setLooping(false);

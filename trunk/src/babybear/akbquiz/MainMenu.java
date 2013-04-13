@@ -52,9 +52,9 @@ import com.weibo.sdk.android.net.RequestListener;
 import com.weibo.sdk.android.sso.SsoHandler;
 import com.weibo.sdk.android.util.Utility;
 
+
 public class MainMenu extends Activity {
 
-	
 	public static final int REQUEST_CONFIG = 0, REQUEST_START_NORMAL = 1,
 			REQUEST_START_CHALLENGE = 2, REQUEST_AUTH_WEIBO = 100;
 	public static final String KEY_PLAYMODE = "playmode";
@@ -91,16 +91,18 @@ public class MainMenu extends Activity {
 	private void setCurrent(int currentUserId) {
 		db.setCurrentUser(currentUserId);
 		for (int i = 0; i < userList.size(); i++) {
-			if (userList.get(i).getAsInteger(Database.ColName_id) == currentUserId)
+			if (userList.get(i).getAsInteger(Database.ColName_id) == currentUserId) {
 				currentUserInList = i;
+			}
 		}
 
-		username = userList.get(currentUserInList).getAsString(
-				Database.ColName_username);
+		username = userList.get(currentUserInList)
+				.getAsString(Database.ColName_username);
 		// ((TextView) findViewById(R.id.username)).setText(username);
 
 	}
 
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_menu);
@@ -123,8 +125,9 @@ public class MainMenu extends Activity {
 		se.setSwitch(sp_cfg.getBoolean(Database.KEY_switch_sound, true));
 
 		refreshUserlist();
-		if (userList != null)
+		if (userList != null) {
 			setCurrent(db.getCurrentUser());
+		}
 
 		OnClickListener l = new OnClickListener() {
 
@@ -167,7 +170,7 @@ public class MainMenu extends Activity {
 		((Button) findViewById(R.id.config)).setOnClickListener(l);
 		((Button) findViewById(R.id.create_user)).setOnClickListener(l);
 		((Button) findViewById(R.id.clear)).setOnClickListener(l);
-		
+
 		Intent intentBgMusic = new Intent(this, BgMusic.class);
 
 		if (userList == null) {
@@ -187,19 +190,24 @@ public class MainMenu extends Activity {
 
 	}
 
+	@Override
 	public void onStart() {
 		super.onStart();
-		if (userList == null)
+		if (userList == null) {
 			firstRun();
+		}
 		setBackground();
 	}
 
+	@Override
 	protected void onStop() {
 		super.onStop();
 
-		if (userCreator != null)
-			if (userCreator.isShowing())
+		if (userCreator != null) {
+			if (userCreator.isShowing()) {
 				userCreator.dismiss();
+			}
+		}
 
 	}
 
@@ -210,7 +218,9 @@ public class MainMenu extends Activity {
 		stopService(intentBgMusic);
 	}
 
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	@Override
+	protected void
+			onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
 		switch (requestCode) {
@@ -224,8 +234,7 @@ public class MainMenu extends Activity {
 				userdata.put(Database.ColName_id,
 						currUser.getAsInteger(Database.ColName_id));
 				int right = data.getIntExtra("right", 0)
-						+ currUser
-								.getAsInteger(Database.ColName_counter_correct);
+						+ currUser.getAsInteger(Database.ColName_counter_correct);
 				int wrong = data.getIntExtra("wrong", 0)
 						+ currUser.getAsInteger(Database.ColName_counter_wrong);
 				int time = data.getIntExtra("time", 0)
@@ -241,14 +250,14 @@ public class MainMenu extends Activity {
 			break;
 		case REQUEST_AUTH_WEIBO:
 			if (weiboSsoHandler != null) {
-				weiboSsoHandler
-						.authorizeCallBack(requestCode, resultCode, data);
+				weiboSsoHandler.authorizeCallBack(requestCode, resultCode, data);
 			}
 			break;
 		}
 
 	}
 
+	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BACK:
@@ -271,11 +280,13 @@ public class MainMenu extends Activity {
 					}
 				};
 
-				new AlertDialog.Builder(this)
-						.setNegativeButton(android.R.string.cancel, listener)
+				new AlertDialog.Builder(this).setNegativeButton(android.R.string.cancel,
+						listener)
 						.setPositiveButton(android.R.string.ok, listener)
 						.setIcon(R.drawable.app_ico_48)
-						.setTitle(R.string.menu_quit).create().show();
+						.setTitle(R.string.menu_quit)
+						.create()
+						.show();
 
 			} else {
 				menu_flipper.showPrevious();
@@ -301,11 +312,7 @@ public class MainMenu extends Activity {
 					+ getPackageName()
 					+ "/custom_bg.png");
 			if (file.exists()) {
-				menu_flipper.setBackgroundDrawable(Drawable.createFromPath(file
-						.getPath()));
-			} else {
-				Toast.makeText(this, "没有找到设置的背景图片", Toast.LENGTH_SHORT).show();
-
+				menu_flipper.setBackgroundDrawable(Drawable.createFromPath(file.getPath()));
 			}
 		} else {
 			Log.d("setBackground()", "false");
@@ -336,7 +343,8 @@ public class MainMenu extends Activity {
 
 					String t_username = T_username.getText().toString();
 					if (t_username.equals("")) {
-						Toast.makeText(MainMenu.this, "请输入一个用户名",
+						Toast.makeText(MainMenu.this,
+								R.string.menu_type_username,
 								Toast.LENGTH_SHORT).show();
 						return;
 					}
@@ -346,8 +354,7 @@ public class MainMenu extends Activity {
 					// );
 					if (userList != null) {
 						for (int i = 0; i < userList.size(); i++) {
-							userin_lower = t_username.toLowerCase(Locale
-									.getDefault());
+							userin_lower = t_username.toLowerCase(Locale.getDefault());
 							user_lower = userList.get(i)
 									.getAsString(Database.ColName_username)
 									.toLowerCase(Locale.getDefault());
@@ -355,7 +362,8 @@ public class MainMenu extends Activity {
 									+ userin_lower + " &&   user_lower = "
 									+ user_lower);
 							if (userin_lower.equals(user_lower)) {
-								Toast.makeText(MainMenu.this, "已存在相同的用户名",
+								Toast.makeText(MainMenu.this,
+										R.string.menu_username_duplicate,
 										Toast.LENGTH_SHORT).show();
 								return;
 							}
@@ -386,8 +394,8 @@ public class MainMenu extends Activity {
 		};
 
 		LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-		LinearLayout layout = (LinearLayout) inflater.inflate(
-				R.layout.username, null);
+		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.username,
+				null);
 
 		T_username = (EditText) layout.findViewById(R.id.username);
 		Button B_ok = (Button) layout.findViewById(R.id.ok);
@@ -399,11 +407,14 @@ public class MainMenu extends Activity {
 		weiboLoginBtn.setOnClickListener(l_userCreater);
 
 		AlertDialog.Builder userCreatorBuilder = new AlertDialog.Builder(this);
-		userCreator = userCreatorBuilder.setTitle("创建一个新用户")
-				.setIcon(R.drawable.app_ico_48).setView(layout).create();
+		userCreator = userCreatorBuilder.setTitle(R.string.menu_new_user)
+				.setIcon(R.drawable.app_ico_48)
+				.setView(layout)
+				.create();
 		userCreator.setCancelable(isCancelable);
-		if (!isCancelable)
+		if (!isCancelable) {
 			B_cancel.setVisibility(View.GONE);
+		}
 		userCreator.show();
 	}
 
@@ -419,8 +430,7 @@ public class MainMenu extends Activity {
 		LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.record,
 				null);
 
-		TextView TV_username = (TextView) layout
-				.findViewById(R.id.record_username);
+		TextView TV_username = (TextView) layout.findViewById(R.id.record_username);
 		TV_username.setText(username);
 
 		ContentValues userdata = userList.get(currentUserInList);
@@ -437,21 +447,20 @@ public class MainMenu extends Activity {
 		TextView TV_wrong = (TextView) layout.findViewById(R.id.record_wrong);
 		TV_wrong.setText("" + wrong);
 
-		TextView TV_accuracy = (TextView) layout
-				.findViewById(R.id.record_accuracy);
+		TextView TV_accuracy = (TextView) layout.findViewById(R.id.record_accuracy);
 		TV_accuracy.setText("" + ((float) right / (right + wrong)));
 
-		TextView TV_sumtime = (TextView) layout
-				.findViewById(R.id.record_sumtime);
+		TextView TV_sumtime = (TextView) layout.findViewById(R.id.record_sumtime);
 		TV_sumtime.setText("" + sumtime);
 
-		TextView TV_meantime = (TextView) layout
-				.findViewById(R.id.record_meantime);
+		TextView TV_meantime = (TextView) layout.findViewById(R.id.record_meantime);
 		TV_meantime.setText("" + ((float) sumtime / (right + wrong)));
 
 		AlertDialog.Builder userCreatorBuilder = new AlertDialog.Builder(this);
 		userCreatorBuilder.setView(layout)
-				.setNegativeButton(android.R.string.ok, null).create().show();
+				.setNegativeButton(android.R.string.ok, null)
+				.create()
+				.show();
 	}
 
 	/**
@@ -459,18 +468,21 @@ public class MainMenu extends Activity {
 	 */
 	protected void refreshUserlist() {
 		userList = db.userListQuery();
-		if (userList == null)
+		if (userList == null) {
 			return;
+		}
 		for (int i = 0; i < userList.size(); i++) {
 			Log.d("refreshUserList",
 					userList.get(i).getAsString(Database.ColName_username));
 		}
 		for (int i = 0; i < userList.size(); i++) {
-			if (userList.get(i).getAsString(Database.ColName_username)
-					.equals(username))
+			if (userList.get(i)
+					.getAsString(Database.ColName_username)
+					.equals(username)) {
 				userList.get(i).put("isChoosed", true);
-			else
+			} else {
 				userList.get(i).put("isChoosed", false);
+			}
 		}
 
 		userListAdapter = new UserlistAdapter(this, userList);
@@ -491,23 +503,24 @@ public class MainMenu extends Activity {
 			super(context, 0, objects);
 		}
 
+		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View v = convertView;
 			if (v == null) {
-				v = LayoutInflater.from(getContext()).inflate(
-						R.layout.user_chooser_item, null);
+				v = LayoutInflater.from(getContext())
+						.inflate(R.layout.user_chooser_item, null);
 			}
 
 			ContentValues values = getItem(position);
 
 			// if((TextView) v.findViewById(R.id.username) == null)Log.d("123",
 			// "v.findViewById(R.id.username) == null");
-			((TextView) v.findViewById(R.id.username)).setText(values
-					.getAsString(Database.ColName_username));
-			if (values.getAsBoolean("isChoosed"))
+			((TextView) v.findViewById(R.id.username)).setText(values.getAsString(Database.ColName_username));
+			if (values.getAsBoolean("isChoosed")) {
 				v.setBackgroundColor(0xffa0a0a0);
-			else
+			} else {
 				v.setBackgroundColor(0xff000000);
+			}
 			View del = v.findViewById(R.id.delete);
 			del.setTag("" + position);
 			del.setClickable(true);
@@ -541,14 +554,8 @@ public class MainMenu extends Activity {
 		@Override
 		public void onClick(View arg0) {
 			int pos = Integer.parseInt((String) arg0.getTag());
-			// ContentValues tuser = ;
 			int _id = userList.get(pos).getAsInteger(Database.ColName_id);
-
 			setCurrent(_id);
-
-			// userdata=db.getCurrentUser();
-			// username=userdata.getAsString(Database.ColName_username);
-			// TV_username.setText(username);
 			refreshUserlist();
 
 		}
@@ -573,7 +580,8 @@ public class MainMenu extends Activity {
 					if (isCurrent) {
 						if (pos + 1 >= userList.size()) {
 							if (pos - 1 < 0) {
-								Toast.makeText(MainMenu.this, "这是唯一的用户，不可删除",
+								Toast.makeText(MainMenu.this,
+										R.string.menu_only_user,
 										Toast.LENGTH_SHORT).show();
 								return;
 							} else {
@@ -582,8 +590,8 @@ public class MainMenu extends Activity {
 						} else {
 							pos++;
 						}
-						setCurrent(userList.get(pos).getAsInteger(
-								Database.ColName_id));
+						setCurrent(userList.get(pos)
+								.getAsInteger(Database.ColName_id));
 					}
 
 					db.removeUser(_id);
@@ -604,8 +612,8 @@ public class MainMenu extends Activity {
 			String username = tuser.getAsString(Database.ColName_username);
 			isCurrent = tuser.getAsBoolean("isChoosed");
 			AlertDialog.Builder confirm = new AlertDialog.Builder(MainMenu.this);
-			confirm.setTitle("确认删除");
-			confirm.setMessage("确定要删除用户“" + username + "”吗？");
+			confirm.setTitle(R.string.menu_delete_confirm);
+			confirm.setMessage(getString(R.string.menu_delete_info, username));
 			confirm.setPositiveButton(android.R.string.ok, l);
 			confirm.setNegativeButton(android.R.string.cancel, l);
 			confirm.create().show();
@@ -624,12 +632,13 @@ public class MainMenu extends Activity {
 		cfg_Editor.putBoolean(Database.KEY_switch_vibration, true);
 		cfg_Editor.putInt(Database.KEY_vol_bg, 10);
 		cfg_Editor.putInt(Database.KEY_vol_sound, 10);
-		cfg_Editor.putString(Database.ColName_playlist, "android.resource://"
-				+ getPackageName() + "/" + R.raw.bg);
+		cfg_Editor.putString(Database.ColName_playlist, "{}");
 		cfg_Editor.putBoolean(Database.KEY_use_custom_background, false);
+		cfg_Editor.putInt(Database.KEY_tips_info, 0);
+		cfg_Editor.putInt(Database.KEY_tips_quiz, 0);
+
 		cfg_Editor.commit();
-		
-		
+
 		AssetManager am = getAssets();
 		File fileout = new File(Database.databasePath);
 		if (!fileout.exists()) {
@@ -644,27 +653,33 @@ public class MainMenu extends Activity {
 				while (temp != -1) {
 					os.write(temp);
 					temp = is.read();
-				}
-				;
+				};
 
 				os.flush();
 				os.close();
 				is.close();
 
-			} catch (FileNotFoundException e) {
-				Toast.makeText(this, "数据文件未找到", Toast.LENGTH_SHORT).show();
+			}
+			catch (FileNotFoundException e) {
+				Toast.makeText(this,
+						R.string.database_err_unfind,
+						Toast.LENGTH_SHORT).show();
 				finish();
 				e.printStackTrace();
-			} catch (IOException e) {
-				Toast.makeText(this, "无法建立数据文件", Toast.LENGTH_SHORT).show();
+			}
+			catch (IOException e) {
+				Toast.makeText(this,
+						R.string.database_err_create,
+						Toast.LENGTH_SHORT).show();
 				finish();
 				e.printStackTrace();
 			}
 		}
 		File ext = new File(Environment.getExternalStorageDirectory().getPath()
 				+ "/Android/data/" + getPackageName());
-		if (!ext.exists())
+		if (!ext.exists()) {
 			ext.mkdirs();
+		}
 		createUser(false);
 	}
 
@@ -672,7 +687,6 @@ public class MainMenu extends Activity {
 	 * 新浪微博认证的回调对象
 	 * 
 	 * @author BabyBeaR
-	 * 
 	 */
 	class AuthDialogListener implements WeiboAuthListener {
 
@@ -684,8 +698,9 @@ public class MainMenu extends Activity {
 			if (MainMenu.weiboAccessToken.isSessionValid()) {
 				AccessTokenKeeper.keepAccessToken(MainMenu.this,
 						MainMenu.weiboAccessToken);
-				Toast.makeText(MainMenu.this, "认证成功", Toast.LENGTH_SHORT)
-						.show();
+				Toast.makeText(MainMenu.this,
+						R.string.weibo_auth_success,
+						Toast.LENGTH_SHORT).show();
 
 				UsersAPI user = new UsersAPI(MainMenu.weiboAccessToken);
 
@@ -698,24 +713,24 @@ public class MainMenu extends Activity {
 						AccessTokenKeeper.keepUserinfo(MainMenu.this, json);
 						try {
 							JSONObject info = new JSONObject(json);
-							final String t_username = info
-									.getString("screen_name");
+							final String t_username = info.getString("screen_name");
 							final String userIdentity = Database.IDTag_weibo
 									+ info.getString("idstr");
 							if (userList != null) {
 								String user;
 								for (int i = 0; i < userList.size(); i++) {
-									user = userList.get(i).getAsString(
-											Database.ColName_user_identity);
-									if (user == null)
+									user = userList.get(i)
+											.getAsString(Database.ColName_user_identity);
+									if (user == null) {
 										continue;
+									}
 									if (userIdentity.equals(user)) {
 										handler.post(new Runnable() {
 
 											@Override
 											public void run() {
 												Toast.makeText(MainMenu.this,
-														"已存在相同的用户",
+														R.string.menu_username_duplicate,
 														Toast.LENGTH_SHORT)
 														.show();
 											}
@@ -728,8 +743,8 @@ public class MainMenu extends Activity {
 							handler.post(new Runnable() {
 								@Override
 								public void run() {
-									int newUserId = (int) db.addUser(
-											t_username, userIdentity);
+									int newUserId = (int) db.addUser(t_username,
+											userIdentity);
 									refreshUserlist();
 									setCurrent(newUserId);
 									userCreator.dismiss();
@@ -737,7 +752,8 @@ public class MainMenu extends Activity {
 								}
 
 							});
-						} catch (JSONException e) {
+						}
+						catch (JSONException e) {
 							e.printStackTrace();
 						}
 					}
@@ -748,7 +764,8 @@ public class MainMenu extends Activity {
 
 							@Override
 							public void run() {
-								Toast.makeText(MainMenu.this, "获取用户信息失败",
+								Toast.makeText(MainMenu.this,
+										R.string.weibo_err_userinfo,
 										Toast.LENGTH_SHORT).show();
 							}
 
@@ -762,7 +779,8 @@ public class MainMenu extends Activity {
 
 							@Override
 							public void run() {
-								Toast.makeText(MainMenu.this, "获取用户信息失败",
+								Toast.makeText(MainMenu.this,
+										R.string.weibo_err_userinfo,
 										Toast.LENGTH_SHORT).show();
 							}
 
@@ -779,19 +797,23 @@ public class MainMenu extends Activity {
 
 		@Override
 		public void onError(WeiboDialogError e) {
-			Toast.makeText(getApplicationContext(), "认证错误 : " + e.getMessage(),
+			Toast.makeText(getApplicationContext(),
+					getString(R.string.weibo_err_auth) + e.getMessage(),
 					Toast.LENGTH_LONG).show();
 		}
 
 		@Override
 		public void onCancel() {
-			Toast.makeText(getApplicationContext(), "认证取消", Toast.LENGTH_LONG)
+			Toast.makeText(getApplicationContext(),
+					R.string.weibo_err_cancel,
+					Toast.LENGTH_LONG)
 					.show();
 		}
 
 		@Override
 		public void onWeiboException(WeiboException e) {
-			Toast.makeText(getApplicationContext(), "认证异常 : " + e.getMessage(),
+			Toast.makeText(getApplicationContext(),
+					getString(R.string.weibo_err_auth) + e.getMessage(),
 					Toast.LENGTH_LONG).show();
 		}
 
