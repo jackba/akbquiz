@@ -11,13 +11,13 @@ import java.util.TimerTask;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
@@ -37,6 +37,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,7 +66,9 @@ public class Quiz extends Activity {
 	private Button[] Buttons = new Button[4];
 	private TextView quiz_Question = null;
 	private TextView quiz_Title = null;
-	private ProgressDialog loading = null;
+
+	// Loading 界面
+	private ProgressBar loading = null;
 
 	// 正误动画
 	private PopupWindow Right = null, Wrong = null;
@@ -82,33 +85,24 @@ public class Quiz extends Activity {
 
 	QuizHandler handler;
 	private Dialog dialog;
+	private Database db;
+	SharedPreferences sp_cfg;
 
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.quiz);
+		setContentView(R.layout.loading);
+
 		handler = new QuizHandler(this);
 		right_count = 0;
 		wrong_count = 0;
 		time_count = 0;
 
-		SharedPreferences sp_cfg = getSharedPreferences("config",
-				Context.MODE_PRIVATE);
-		isVibratorOn = sp_cfg.getBoolean(Database.KEY_switch_vibration,
-				true);
+		db = new Database(Quiz.this, Database.DBName_quiz);
+
+		sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
+		isVibratorOn = sp_cfg.getBoolean(Database.KEY_switch_vibration, true);
 		vibrator = (Vibrator) this.getSystemService(Service.VIBRATOR_SERVICE);
-
-		Buttons[0] = (Button) findViewById(R.id.button_A);
-		Buttons[1] = (Button) findViewById(R.id.button_B);
-		Buttons[2] = (Button) findViewById(R.id.button_C);
-		Buttons[3] = (Button) findViewById(R.id.button_D);
-		Buttons[0].setOnClickListener(l);
-		Buttons[1].setOnClickListener(l);
-		Buttons[2].setOnClickListener(l);
-		Buttons[3].setOnClickListener(l);
-
-		quiz_Question = (TextView) findViewById(R.id.quiz);
-
-		quiz_Title = (TextView) findViewById(R.id.quiz_Title);
 
 		LayoutInflater mLayoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 		View rightView = mLayoutInflater.inflate(R.layout.right, null);
@@ -125,30 +119,15 @@ public class Quiz extends Activity {
 		Wrong.setWidth(LayoutParams.FILL_PARENT);
 		Wrong.setHeight(LayoutParams.FILL_PARENT);
 
-		loading = new ProgressDialog(this);
-		loading.setCancelable(false);
-		loading.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		loading.setTitle(R.string.quiz_loading);
-		loading.setMax(100);
-	}
+		// loading = new ProgressDialog(this);
+		// loading.setCancelable(false);
+		// loading.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		// loading.setTitle(R.string.quiz_loading);
+		// loading.setMax(100);
 
-	public void onStart() {
-		super.onStart();
-		Log.d(TAG, "onStart");
-		// getQuiz();
-				
-		SharedPreferences sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
-		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
-			findViewById(R.id.quiz_body).setBackgroundDrawable(Drawable
-					.createFromPath(Environment
-							.getExternalStorageDirectory().getPath()
-							+ "/Android/data/"
-							+ getPackageName()
-							+ "/custom_bg.png"));
-		}else{
-			findViewById(R.id.quiz_body).setBackgroundResource(R.drawable.background);
-		}
-		
+		loading = (ProgressBar) findViewById(R.id.progress);
+		loading.setMax(100);
+
 		Bundle data = this.getIntent().getExtras();
 		ArrayList<String> group = new ArrayList<String>();
 		if (data.getBoolean(Database.GroupName_AKB48)) {
@@ -179,25 +158,52 @@ public class Quiz extends Activity {
 		// quizList = db.QuizQuery(data.getInt(Database.ColName_DIFFICULTY, 1),
 		// groups.toArray(new String[0]));
 
-		new Thread() {
-			public Database db;
+		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
+			findViewById(R.id.loading_body).setBackgroundDrawable(Drawable.createFromPath(Environment.getExternalStorageDirectory()
+					.getPath()
+					+ "/Android/data/" + getPackageName() + "/custom_bg.png"));
+		}
 
+		new Thread() {
+			String tips;
+
+			@Override
 			public void run() {
 				Date start = new Date();
 				Log.d(TAG, "start query quiz @ " + start.toLocaleString());
 				Random r = new Random();
 
-				handler.post(new Runnable() {
+				int t = r.nextInt(Database.QUIZ_RAND_MAX);
+				Editor editor = sp_cfg.edit();
+				int offset;
+				if (t >= Database.QUIZ_DIVIDE_3) {
+					offset = sp_cfg.getInt(Database.KEY_tips_quiz, 0);
+					tips = db.getTips(Database.QuizType_Normal, offset);
+					editor.putInt(Database.KEY_tips_quiz, offset + 1);
+					editor.commit();
+				} else {
+					offset = sp_cfg.getInt(Database.KEY_tips_info, 0);
+					if (t < Database.QUIZ_DIVIDE_1) {
+						tips = db.getTips(Database.QuizType_Birthday, offset);
 
+					} else if (t < Database.QUIZ_DIVIDE_2) {
+						tips = db.getTips(Database.QuizType_Comefrom,
+								sp_cfg.getInt(Database.KEY_tips_info, 0));
+					} else {
+						tips = db.getTips(Database.QuizType_Team,
+								sp_cfg.getInt(Database.KEY_tips_info, 0));
+					}
+					editor.putInt(Database.KEY_tips_info, offset + 1);
+					editor.commit();
+				}
+
+				handler.post(new Runnable() {
 					@Override
 					public void run() {
-						loading.show();
-						loading.setMessage(getString(R.string.quiz_querying));
+						((TextView) findViewById(R.id.tips)).setText(tips);
 						loading.setProgress(20);
 					}
-
 				});
-				db = new Database(Quiz.this, Database.DBName_quiz);
 
 				ArrayList<ContentValues> questions;
 				questions = db.QuizQuery(groups);
@@ -206,18 +212,15 @@ public class Quiz extends Activity {
 				Log.d(TAG, "get query quiz @ " + get.toLocaleString() + " in "
 						+ (get.getTime() - start.getTime() + " ms"));
 				handler.post(new Runnable() {
-
 					@Override
 					public void run() {
-						loading.setMessage(getString(R.string.quiz_processing));
 						loading.setProgress(80);
 					}
-
 				});
 				quizList = new ArrayList<ContentValues>();
 
 				for (int i = 0, length = questions.size(); i < length; i++) {
-					int t = r.nextInt(questions.size());
+					t = r.nextInt(questions.size());
 					quizList.add(questions.get(t));
 					questions.remove(t);
 				}
@@ -230,30 +233,65 @@ public class Quiz extends Activity {
 				Log.d(TAG, "complete query quiz @ " + complete.toLocaleString()
 						+ " in " + (complete.getTime() - get.getTime() + " ms"));
 				handler.post(new Runnable() {
-
 					@Override
 					public void run() {
-						loading.setMessage(getString(R.string.quiz_complete));
 						loading.setProgress(100);
-						loading.dismiss();
 					}
-
 				});
-				handler.sendEmptyMessage(QuizHandler.QUIZ_LOADED);
+				handler.sendEmptyMessageDelayed(QuizHandler.QUIZ_LOADED, 500);
 			}
 		}.start();
-
 	}
 
+	private void widgetInit() {
+
+		setContentView(R.layout.quiz);
+
+		Buttons[0] = (Button) findViewById(R.id.button_A);
+		Buttons[1] = (Button) findViewById(R.id.button_B);
+		Buttons[2] = (Button) findViewById(R.id.button_C);
+		Buttons[3] = (Button) findViewById(R.id.button_D);
+		Buttons[0].setOnClickListener(l);
+		Buttons[1].setOnClickListener(l);
+		Buttons[2].setOnClickListener(l);
+		Buttons[3].setOnClickListener(l);
+
+		quiz_Question = (TextView) findViewById(R.id.quiz);
+
+		quiz_Title = (TextView) findViewById(R.id.quiz_Title);
+
+		SharedPreferences sp_cfg = getSharedPreferences("config",
+				Context.MODE_PRIVATE);
+
+		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
+			findViewById(R.id.quiz_body).setBackgroundDrawable(Drawable.createFromPath(Environment.getExternalStorageDirectory()
+					.getPath()
+					+ "/Android/data/" + getPackageName() + "/custom_bg.png"));
+		} else {
+			findViewById(R.id.quiz_body).setBackgroundResource(R.drawable.background);
+		}
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		Log.d(TAG, "onStart");
+		// getQuiz();
+	}
+
+	@Override
 	public void onStop() {
 		super.onStop();
-		if (Right.isShowing())
+		if (Right.isShowing()) {
 			Right.dismiss();
-		if (Wrong.isShowing())
+		}
+		if (Wrong.isShowing()) {
 			Wrong.dismiss();
+		}
 
 	}
 
+	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BACK:
@@ -262,7 +300,6 @@ public class Quiz extends Activity {
 
 			finish();
 			break;
-
 		}
 
 		return super.onKeyDown(keyCode, event);
@@ -274,7 +311,8 @@ public class Quiz extends Activity {
 	void setQuiz() {
 
 		if (quizList == null || quizList.size() == 0) {
-			Toast.makeText(this, "十分抱歉，题库中没有您要的题目", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, R.string.quiz_noquiz, Toast.LENGTH_SHORT)
+					.show();
 			return;
 		}
 		Log.d("Quiz", "get " + quizList.size() + " rows");
@@ -289,11 +327,15 @@ public class Quiz extends Activity {
 
 		ContentValues a_quiz = quizList.get(quizIndex);
 
-		quiz_Title.setText("ID. " + a_quiz.getAsInteger(Database.ColName_id)
-				+ "  出题者:" + a_quiz.getAsString(Database.ColName_EDITOR));
+		quiz_Title.setText(getString(R.string.quiz_title,
+				a_quiz.getAsInteger(Database.ColName_id),
+				a_quiz.getAsString(Database.ColName_EDITOR)));
 
-		quiz_Question.setText("第" + (quizIndex + 1) + "/" + quizList.size()
-				+ "题\n  " + a_quiz.getAsString(Database.ColName_QUESTION));
+		quiz_Question.setText(getString(R.string.quiz_question,
+				quizIndex + 1,
+				quizList.size(),
+				a_quiz.getAsString(Database.ColName_QUESTION)))
+				;
 
 		int[] answer_index = new int[4];
 		for (int i = 0; i < 4; i++) {
@@ -308,8 +350,9 @@ public class Quiz extends Activity {
 					flag = false;
 				}
 			} while (flag);
-			if (temp == 0)
+			if (temp == 0) {
 				correct_answer = i;
+			}
 			answer_index[i] = temp;
 			Buttons[i].setText(a_quiz.getAsString(ColName[temp]));
 			// Log.d(TAG,"answer_index["+i+"] = "+answer_index[i]);
@@ -320,16 +363,19 @@ public class Quiz extends Activity {
 	/**
 	 * 检查选项并quizIndex自增
 	 * 
-	 * @param answer
-	 *            0~3
+	 * @param answer 0~3
 	 */
 	void check(int answer) {
 		Log.d(TAG, "answer = " + answer);
 		quizIndex++;
 		if (answer == correct_answer) {
-			Right.showAtLocation(findViewById(R.id.quiz_body), Gravity.CENTER, 0, 0);
+			Right.showAtLocation(findViewById(R.id.quiz_body),
+					Gravity.CENTER,
+					0,
+					0);
 
 			new Handler().postDelayed(new Runnable() {
+				@Override
 				public void run() {
 					Right.dismiss();
 					rightAnim.reset();
@@ -342,14 +388,19 @@ public class Quiz extends Activity {
 			}, rightAnim.getDuration());
 
 			rightAnim.startNow();
-			if (isVibratorOn)
+			if (isVibratorOn) {
 				vibrator.vibrate(v_right, -1);
+			}
 			MainMenu.se.play(MainMenu.se.sound_right);
 			right_count++;
 			Log.d(TAG, "Right");
 		} else {
-			Wrong.showAtLocation(findViewById(R.id.quiz_body), Gravity.CENTER, 0, 0);
+			Wrong.showAtLocation(findViewById(R.id.quiz_body),
+					Gravity.CENTER,
+					0,
+					0);
 			new Handler().postDelayed(new Runnable() {
+				@Override
 				public void run() {
 					Wrong.dismiss();
 					wrongAnim.reset();
@@ -361,8 +412,9 @@ public class Quiz extends Activity {
 				}
 			}, wrongAnim.getDuration());
 			wrongAnim.startNow();
-			if (isVibratorOn)
+			if (isVibratorOn) {
 				vibrator.vibrate(v_wrong, -1);
+			}
 			MainMenu.se.play(MainMenu.se.sound_wrong);
 			wrong_count++;
 			Log.d(TAG, "Wrong");
@@ -409,16 +461,16 @@ public class Quiz extends Activity {
 					if (MainMenu.weiboAccessToken.isSessionValid()) {
 						Weibo.isWifi = Utility.isWifi(Quiz.this);
 
-						String content = String.format(
-								Quiz.this.getString(R.string.weibo_template),
-								quizList.size(), right_count, wrong_count,
-								time_count, right_count * 100
-										/ (right_count + wrong_count));
+						String content = String.format(Quiz.this.getString(R.string.weibo_template),
+								quizList.size(),
+								right_count,
+								wrong_count,
+								time_count,
+								right_count * 100 / (right_count + wrong_count));
 
 						final EditText input = new EditText(Quiz.this);
 						input.setText(content);
-						AlertDialog.Builder builder = new AlertDialog.Builder(
-								Quiz.this);
+						AlertDialog.Builder builder = new AlertDialog.Builder(Quiz.this);
 						builder.setTitle(R.string.summary_share)
 								.setIcon(R.drawable.weibo_logo_48)
 								.setView(input)
@@ -426,9 +478,9 @@ public class Quiz extends Activity {
 										new DialogInterface.OnClickListener() {
 
 											@Override
-											public void onClick(
-													DialogInterface dialog,
-													int which) {
+											public void
+													onClick(DialogInterface dialog,
+															int which) {
 												finishThis();
 											}
 
@@ -436,31 +488,32 @@ public class Quiz extends Activity {
 								.setPositiveButton(android.R.string.ok,
 										new DialogInterface.OnClickListener() {
 
-											public void onClick(
-													DialogInterface dialog,
-													int which) {
-												StatusesAPI status = new StatusesAPI(
-														MainMenu.weiboAccessToken);
+											@Override
+											public void
+													onClick(DialogInterface dialog,
+															int which) {
+												StatusesAPI status = new StatusesAPI(MainMenu.weiboAccessToken);
 												status.update(input.getText()
-														.toString(), null,
+														.toString(),
+														null,
 														null,
 														new RequestListener() {
 
 															@Override
-															public void onComplete(
-																	String arg0) {
+															public void
+																	onComplete(String arg0) {
 																handler.sendEmptyMessage(QuizHandler.WEIBO_SUCCESS);
 															}
 
 															@Override
-															public void onError(
-																	WeiboException arg0) {
+															public void
+																	onError(WeiboException arg0) {
 																handler.sendEmptyMessage(QuizHandler.WEIBO_FAIL);
 															}
 
 															@Override
-															public void onIOException(
-																	IOException arg0) {
+															public void
+																	onIOException(IOException arg0) {
 															}
 
 														});
@@ -469,7 +522,8 @@ public class Quiz extends Activity {
 						builder.show();
 
 					} else {
-						Toast.makeText(Quiz.this, "还未授权微博或微博授权已过期",
+						Toast.makeText(Quiz.this,
+								R.string.weibo_err_unauth,
 								Toast.LENGTH_SHORT).show();
 					}
 
@@ -478,10 +532,12 @@ public class Quiz extends Activity {
 
 			}
 		};
-		dialog = summary_bulider
-				.setNegativeButton(android.R.string.ok, listener)
+		dialog = summary_bulider.setNegativeButton(android.R.string.ok,
+				listener)
 				.setNeutralButton(R.string.summary_share, listener)
-				.setTitle("统计信息").setView(layout).create();
+				.setTitle(R.string.summary_title)
+				.setView(layout)
+				.create();
 		dialog.show();
 	}
 
@@ -500,8 +556,9 @@ public class Quiz extends Activity {
 		@Override
 		public void onClick(View arg0) {
 			// Log.d(TAG, ""+arg0);\\\
-			if (!isPlaying)
+			if (!isPlaying) {
 				return;
+			}
 			rightAnim.reset();
 			wrongAnim.reset();
 			switch (arg0.getId()) {
@@ -544,6 +601,7 @@ public class Quiz extends Activity {
 			Quiz quizActivity = activity.get();
 			switch (msg.what) {
 			case QUIZ_LOADED:
+				quizActivity.widgetInit();
 				quizActivity.setQuiz();
 				break;
 			case WEIBO_SUCCESS:

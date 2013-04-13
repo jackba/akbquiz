@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,60 +27,88 @@ import android.widget.Toast;
 
 public class Database {
 	public static final String databasePath = "/data/data/babybear.akbquiz/databases/AKBQuiz.db";
-	static final String DBName_quiz = "AKBQuiz.db", DBName_cfg = "config.db",
-			TabName_user = "user", TabName_quiz = "quiz",
-			TabName_member = "member_info";
+	public static final String DBName_quiz = "AKBQuiz.db";
+	public static final String DBName_cfg = "config.db";
+	public static final String TabName_user = "user";
+	public static final String TabName_quiz = "quiz";
+	public static final String TabName_member = "member_info";
 
-	static final int ColIndex_ID = 0, ColIndex_EDITOR = 1,
-			ColIndex_QUESTION = 2, ColIndex_ANSWER = 3, ColIndex_WRONG1 = 4,
-			ColIndex_WRONG2 = 5, ColIndex_WRONG3 = 6, ColIndex_DIFFICULTY = 7;
+	public static final int ColIndex_ID = 0;
+	public static final int ColIndex_EDITOR = 1;
+	public static final int ColIndex_QUESTION = 2;
+	public static final int ColIndex_ANSWER = 3;
+	public static final int ColIndex_WRONG1 = 4;
+	public static final int ColIndex_WRONG2 = 5;
+	public static final int ColIndex_WRONG3 = 6;
+	public static final int ColIndex_DIFFICULTY = 7;
 
-	static final int GroupOrder_NULL = -1, GroupOrder_AKB48 = 0,
-			GroupOrder_SKE48 = 1, GroupOrder_NMB48 = 2, GroupOrder_HKT48 = 3,
-			GroupOrder_NGZK46 = 6, GroupOrder_SDN48 = 7, GroupOrder_JKT48 = 8,
-			GroupOrder_SNH48 = 9;
+	public static final int GroupOrder_NULL = -1;
+	public static final int GroupOrder_AKB48 = 0;
+	public static final int GroupOrder_SKE48 = 1;
+	public static final int GroupOrder_NMB48 = 2;
+	public static final int GroupOrder_HKT48 = 3;
+	public static final int GroupOrder_NGZK46 = 6;
+	public static final int GroupOrder_SDN48 = 7;
+	public static final int GroupOrder_JKT48 = 8;
+	public static final int GroupOrder_SNH48 = 9;
 
-	static final String GroupName_AKB48 = "akb48", GroupName_SKE48 = "ske48",
-			GroupName_NMB48 = "nmb48", GroupName_HKT48 = "hkt48",
-			GroupName_NGZK46 = "ngzk46", GroupName_SDN48 = "sdn48",
-			GroupName_JKT48 = "jkt48", GroupName_SNH48 = "snh48";
+	public static final String GroupName_AKB48 = "akb48";
+	public static final String GroupName_SKE48 = "ske48";
+	public static final String GroupName_NMB48 = "nmb48";
+	public static final String GroupName_HKT48 = "hkt48";
+	public static final String GroupName_NGZK46 = "ngzk46";
+	public static final String GroupName_SDN48 = "sdn48";
+	public static final String GroupName_JKT48 = "jkt48";
+	public static final String GroupName_SNH48 = "snh48";
 
-	static final String[] GroupNames = { GroupName_AKB48, GroupName_SKE48,
+	public static final String[] GroupNames = { GroupName_AKB48,
+			GroupName_SKE48,
 			GroupName_NMB48, GroupName_HKT48, "", "", GroupName_NGZK46,
 			GroupName_SDN48, GroupName_JKT48, GroupName_SNH48 };
 
-	static final String ColName_id = "_id", ColName_username = "username",
-			ColName_user_identity = "user_identity", ColName_extend = "extend",
-			ColName_playlist = "playlist", ColName_createTime = "createTime",
-			ColName_counter_correct = "counter_correct",
-			ColName_counter_wrong = "counter_wrong",
-			ColName_time_played = "time_played", ColName_EDITOR = "editor",
-			ColName_QUESTION = "question", ColName_ANSWER = "answer",
-			ColName_WRONG1 = "wrong_1", ColName_WRONG2 = "wrong_2",
-			ColName_WRONG3 = "wrong_3", ColName_DIFFICULTY = "difficulty";
+	public static final String ColName_id = "_id";
+	public static final String ColName_username = "username";
+	public static final String ColName_user_identity = "user_identity";
+	public static final String ColName_extend = "extend";
+	public static final String ColName_playlist = "playlist";
+	public static final String ColName_createTime = "createTime";
+	public static final String ColName_counter_correct = "counter_correct";
+	public static final String ColName_counter_wrong = "counter_wrong";
+	public static final String ColName_time_played = "time_played";
+	public static final String ColName_EDITOR = "editor";
+	public static final String ColName_QUESTION = "question";
+	public static final String ColName_ANSWER = "answer";
+	public static final String ColName_WRONG1 = "wrong_1";
+	public static final String ColName_WRONG2 = "wrong_2";
+	public static final String ColName_WRONG3 = "wrong_3";
+	public static final String ColName_DIFFICULTY = "difficulty";
 
-	static final String KEY_switch_bg = "switch_bg", KEY_vol_bg = "vol_bg",
-			KEY_switch_sound = "switch_sound", KEY_vol_sound = "vol_sound",
-			KEY_switch_vibration = "switch_vibration",
-			KEY_use_custom_background = "switch_vibration",
-			KEY_bgm_loopmode = "bg_loopmode",
-			KEY_calendar_id = "calendar_choosed",
-			KEY_events_added = "events_added";
+	public static final String KEY_switch_bg = "switch_bg";
+	public static final String KEY_vol_bg = "vol_bg";
+	public static final String KEY_switch_sound = "switch_sound";
+	public static final String KEY_vol_sound = "vol_sound";
+	public static final String KEY_switch_vibration = "switch_vibration";
+	public static final String KEY_use_custom_background = "switch_vibration";
+	public static final String KEY_bgm_loopmode = "bg_loopmode";
+	public static final String KEY_calendar_id = "calendar_choosed";
+	public static final String KEY_events_added = "events_added";
+	public static final String KEY_tips_info = "tips_info";
+	public static final String KEY_tips_quiz = "tips_info";
 
-	static final String IDTag_weibo = "weibo_";
+	public static final String IDTag_weibo = "weibo_";
 
-	static final int userdb_ver = 2;
-	static final int quizdb_ver = 2;
+	private static final int userdb_ver = 2;
+	private static final int quizdb_ver = 2;
 
-	private final static int QuizType_Normal = 0;
-	private final static int QuizType_Birthday = 1;
-	private final static int QuizType_Team = 2;
-	private final static int QuizType_Comefrom = 3;
+	public final static int QuizType_Normal = 0;
+	public final static int QuizType_Birthday = 1;
+	public final static int QuizType_Team = 2;
+	public final static int QuizType_Comefrom = 3;
 
-	private final static int QUIZ_RAND_MAX = 100;
-	private final static int QUIZ_DIVIDE_1 = 15;
-	private final static int QUIZ_DIVIDE_2 = 30;
-	private final static int QUIZ_DIVIDE_3 = 45;
+	public final static int QUIZ_RAND_MAX = 100;
+	public final static int QUIZ_DIVIDE_1 = 15;
+	public final static int QUIZ_DIVIDE_2 = 30;
+	public final static int QUIZ_DIVIDE_3 = 45;
 
 	private String DBname = null;
 	private Context context = null;
@@ -92,13 +119,10 @@ public class Database {
 	private String[] useableBirthday = null;
 	private String[] useableTeam = null;
 
-	private SimpleDateFormat fmt = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-	private SimpleDateFormat outputDateFormat = new SimpleDateFormat(
-			"yyyy年 MM月 dd日", Locale.getDefault());
+	private SimpleDateFormat fmt;
+	private SimpleDateFormat outputDateFormat;
 
 	/**
-	 * 
 	 * @param ctx
 	 *            Context
 	 * @param name
@@ -107,15 +131,18 @@ public class Database {
 	public Database(Context ctx, String name) {
 		context = ctx;
 		DBname = name;
-
+		fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+		outputDateFormat = new SimpleDateFormat(ctx.getString(R.string.database_datefmt),
+				Locale.getDefault());
 	}
 
 	private class DatabaseHelper extends SQLiteOpenHelper {
 
-		public DatabaseHelper(Context context, String name,
-				CursorFactory factory, int version) {
+		public DatabaseHelper(Context context,
+				String name,
+				CursorFactory factory,
+				int version) {
 			super(context, name, factory, version);
-
 		}
 
 		@Override
@@ -124,7 +151,9 @@ public class Database {
 				// CursorFactory factory = new CursorFactory();
 				// db.create(factory);
 				Date t = new Date();
-				Toast.makeText(context, "建立用户数据库", Toast.LENGTH_SHORT).show();
+				Toast.makeText(context,
+						R.string.database_building,
+						Toast.LENGTH_SHORT).show();
 				db.execSQL("CREATE TABLE user ("
 						+ "_id INTEGER PRIMARY KEY AUTOINCREMENT, "
 						+ ColName_username + " TEXT , " + ColName_user_identity
@@ -160,12 +189,16 @@ public class Database {
 						os.close();
 						is.close();
 
-					} catch (FileNotFoundException e) {
-						Toast.makeText(context, "数据库文件未找到,数据库升级失败",
+					}
+					catch (FileNotFoundException e) {
+						Toast.makeText(context,
+								R.string.database_err_unfind,
 								Toast.LENGTH_SHORT).show();
 						e.printStackTrace();
-					} catch (IOException e) {
-						Toast.makeText(context, "无法建立数据文件,数据库升级失败",
+					}
+					catch (IOException e) {
+						Toast.makeText(context,
+								R.string.database_err_create,
 								Toast.LENGTH_SHORT).show();
 						e.printStackTrace();
 					}
@@ -175,7 +208,8 @@ public class Database {
 		}
 
 		@Override
-		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		public void
+				onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			if (DBname.equals(DBName_cfg)) {
 				switch (oldVersion) {
 				case 1:
@@ -200,19 +234,22 @@ public class Database {
 						while (temp != -1) {
 							os.write(temp);
 							temp = is.read();
-						}
-						;
+						};
 
 						os.flush();
 						os.close();
 						is.close();
 
-					} catch (FileNotFoundException e) {
-						Toast.makeText(context, "数据库文件未找到,数据库升级失败",
+					}
+					catch (FileNotFoundException e) {
+						Toast.makeText(context,
+								R.string.database_update_err_unfind,
 								Toast.LENGTH_SHORT).show();
 						e.printStackTrace();
-					} catch (IOException e) {
-						Toast.makeText(context, "无法建立数据文件,数据库升级失败",
+					}
+					catch (IOException e) {
+						Toast.makeText(context,
+								R.string.database_update_err_create,
 								Toast.LENGTH_SHORT).show();
 						e.printStackTrace();
 					}
@@ -224,53 +261,6 @@ public class Database {
 		@Override
 		public void onOpen(SQLiteDatabase db) {
 			super.onOpen(db);
-			if (DBname.equals(DBName_quiz)) {
-				Cursor cur = db.query("member_info",
-						new String[] { "comefrom" },
-						"`comefrom` IS NOT NULL AND `is_show`", null,
-						"comefrom", null, null);
-				useableComefrom = new String[cur.getCount()];
-				if (cur.getCount() > 0) {
-					int i = 0;
-					while (cur.moveToNext()) {
-						useableComefrom[i] = cur.getString(cur
-								.getColumnIndex("comefrom"));
-						i++;
-					}
-				}
-
-				cur = db.query("member_info", new String[] { "birthday" },
-						"`birthday` IS NOT NULL AND `is_show`", null,
-						"birthday", null, null);
-				useableBirthday = new String[cur.getCount()];
-				if (cur.getCount() > 0) {
-					int i = 0;
-					while (cur.moveToNext()) {
-						try {
-							Date birth = fmt.parse(cur.getString(cur
-									.getColumnIndex("birthday")));
-
-							useableBirthday[i] = outputDateFormat.format(birth);
-						} catch (ParseException e) {
-							e.printStackTrace();
-						}
-						i++;
-					}
-				}
-				cur = db.query("member_info",
-						new String[] { "`group`||' Team '||`team` AS `team`" },
-						"`team` IS NOT NULL AND `is_show`", null, "team", null,
-						null);
-				useableTeam = new String[cur.getCount()];
-				if (cur.getCount() > 0) {
-					int i = 0;
-					while (cur.moveToNext()) {
-						useableTeam[i] = cur.getString(cur
-								.getColumnIndex("team"));
-						i++;
-					}
-				}
-			}
 		}
 	}
 
@@ -285,14 +275,14 @@ public class Database {
 	}
 
 	/**
-	 * 
 	 * @param username
 	 * @param identity
 	 * @return
 	 */
 	public long addUser(String username, String identity) {
-		if (!DBname.equals(DBName_cfg))
+		if (!DBname.equals(DBName_cfg)) {
 			return -1;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, userdb_ver);
 		db = dbh.getWritableDatabase();
 
@@ -304,7 +294,9 @@ public class Database {
 		values.put(ColName_createTime, t.getTime());
 
 		long n = db.insert(TabName_user, null, values);
-		Toast.makeText(context, "用户:'" + username + "'已建立", Toast.LENGTH_SHORT)
+		Toast.makeText(context,
+				context.getString(R.string.database_user_created, username),
+				Toast.LENGTH_SHORT)
 				.show();
 
 		db.close();
@@ -319,14 +311,17 @@ public class Database {
 	 *            用户_id
 	 */
 	public void removeUser(int _id) {
-		if (!DBname.equals(DBName_cfg))
+		if (!DBname.equals(DBName_cfg)) {
 			return;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, userdb_ver);
 		db = dbh.getWritableDatabase();
 
 		db.delete(TabName_user, "_id = " + _id, null);
 
-		Toast.makeText(context, "用户_id:" + _id + " 已删除", Toast.LENGTH_SHORT)
+		Toast.makeText(context,
+				context.getString(R.string.database_user_removed, "id = " + _id),
+				Toast.LENGTH_SHORT)
 				.show();
 		db.close();
 		dbh.close();
@@ -339,14 +334,17 @@ public class Database {
 	 *            用户名
 	 */
 	public void removeUser(String username) {
-		if (!DBname.equals(DBName_cfg))
+		if (!DBname.equals(DBName_cfg)) {
 			return;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, userdb_ver);
 		db = dbh.getWritableDatabase();
 
 		db.delete(TabName_user, ColName_username + " = " + username, null);
 
-		Toast.makeText(context, "用户:'" + username + "'已删除", Toast.LENGTH_SHORT)
+		Toast.makeText(context,
+				context.getString(R.string.database_user_removed, username),
+				Toast.LENGTH_SHORT)
 				.show();
 		db.close();
 		dbh.close();
@@ -361,8 +359,9 @@ public class Database {
 	 *            要更改的键值对
 	 */
 	public void updateInfo(int id, ContentValues values) {
-		if (!DBname.equals(DBName_cfg))
+		if (!DBname.equals(DBName_cfg)) {
 			return;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, userdb_ver);
 		db = dbh.getWritableDatabase();
 		// values.getAsBoolean(key)
@@ -379,8 +378,9 @@ public class Database {
 	 *            用户_id
 	 */
 	public boolean setCurrentUser(int userId) {
-		if (!DBname.equals(DBName_cfg))
+		if (!DBname.equals(DBName_cfg)) {
 			return false;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, userdb_ver);
 		db = dbh.getWritableDatabase();
 
@@ -390,8 +390,9 @@ public class Database {
 
 		db.close();
 		dbh.close();
-		if (n < 1)
+		if (n < 1) {
 			return false;
+		}
 		return true;
 	}
 
@@ -401,31 +402,21 @@ public class Database {
 	 * @return 用户数据的键值对
 	 */
 	public int getCurrentUser() {
-		if (!DBname.equals(DBName_cfg))
+		if (!DBname.equals(DBName_cfg)) {
 			return 0;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, userdb_ver);
 		db = dbh.getWritableDatabase();
 
-		Cursor defaultUser = db.query(TabName_user, new String[] { "extend" },
-				"_id=1", null, null, null, null);
+		Cursor defaultUser = db.query(TabName_user,
+				new String[] { "extend" },
+				"_id=1",
+				null,
+				null,
+				null,
+				null);
 		defaultUser.moveToFirst();
 		int userid = defaultUser.getInt(0);
-		// if (userid<1)return 0;
-		// Cursor cur=db.query("user", null, "_id= '"+userid+"'", null, null,
-		// null, null);
-		//
-		//
-		// ContentValues cfgs;
-		// if(cur.moveToFirst()){
-		// cfgs = new ContentValues();
-		// DatabaseUtils.cursorRowToContentValues(cur,cfgs);
-		// cfgs.put(ColName_switch_sound, cur.getInt(2)==1?true:false);
-		// cfgs.put(ColName_switch_bg, cur.getInt(4)==1?true:false);
-		// cfgs.put(ColName_switch_vibration , cur.getInt(6)==1?true:false);
-		// }else{
-		// cfgs = null;
-		// }
-		// cur.close();
 
 		defaultUser.close();
 		db.close();
@@ -439,12 +430,18 @@ public class Database {
 	 * @return 用户列表 包括int _id ，Sting username 和一个 Boolean isChoosed
 	 */
 	public ArrayList<ContentValues> userListQuery() {
-		if (!DBname.equals(DBName_cfg))
+		if (!DBname.equals(DBName_cfg)) {
 			return null;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, userdb_ver);
 		db = dbh.getWritableDatabase();
 
-		Cursor cur = db.query(TabName_user, null, "_id>1", null, null, null,
+		Cursor cur = db.query(TabName_user,
+				null,
+				"_id>1",
+				null,
+				null,
+				null,
 				null);
 
 		ArrayList<ContentValues> userlist = new ArrayList<ContentValues>();
@@ -472,15 +469,22 @@ public class Database {
 	 *            题目数量
 	 * @return 题目内容
 	 */
-
+	@Deprecated
 	public ArrayList<ContentValues> QuizQuery(int n) {
-		if (!DBname.equals(DBName_quiz))
+		if (!DBname.equals(DBName_quiz)) {
 			return null;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
 		db = dbh.getWritableDatabase();
 
-		Cursor cur = db.query(TabName_quiz, null, null, null, null, null,
-				"random()", "0," + n);
+		Cursor cur = db.query(TabName_quiz,
+				null,
+				null,
+				null,
+				null,
+				null,
+				"random()",
+				"0," + n);
 
 		ArrayList<ContentValues> quizlist = new ArrayList<ContentValues>();
 		if (cur.moveToFirst()) {
@@ -501,32 +505,37 @@ public class Database {
 	/**
 	 * 通过难度和团体获取 20个题目 因难度不可用 还未启用
 	 * 
-	 * @param difficulty
-	 *            难度
-	 * @param groups
-	 *            相关的团
+	 * @param difficulty 难度
+	 * @param groups 相关的团
 	 * @return 题目内容
 	 */
 	public ArrayList<ContentValues> QuizQuery(int difficulty, String[] groups) {
 
-		if (!DBname.equals(DBName_quiz))
+		if (!DBname.equals(DBName_quiz)) {
 			return null;
+		}
 		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
 		db = dbh.getWritableDatabase();
 
 		String selection = "(";
 		// String [] selectionArgs = new String [groups.length];
 		for (int i = 0; i < groups.length; i++) {
-			if (i > 0)
+			if (i > 0) {
 				selection += " OR ";
+			}
 			selection += groups[i] + "=1";
 		}
 		selection += ") AND difficulty = " + difficulty;
 
 		Log.d("Database", "selection is : " + selection);
-		Cursor cur = db.query(TabName_quiz, null, selection, groups, null,
-				null, "random()", "0,20");
-		;
+		Cursor cur = db.query(TabName_quiz,
+				null,
+				selection,
+				groups,
+				null,
+				null,
+				"random()",
+				"0,20");;
 
 		ArrayList<ContentValues> quizlist = new ArrayList<ContentValues>();
 
@@ -551,35 +560,45 @@ public class Database {
 	/**
 	 * 根据团体获取20个题目
 	 * 
-	 * @param groups
-	 *            相关的团
+	 * @param groups 相关的团
 	 * @return 题目内容
 	 * @throws ParseException
 	 */
 	public ArrayList<ContentValues> QuizQuery(String[] groups) {
-		if (!DBname.equals(DBName_quiz))
+		if (!DBname.equals(DBName_quiz)) {
 			return null;
+		}
 
-		if (groups.length == 0)
+		if (groups.length == 0) {
 			return QuizQuery(20);
+		}
+
 
 		int[] quizCounts = this.getCountEachType(20);
 
 		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
 		db = dbh.getWritableDatabase();
 
+		loadOptions();
 		// 一般问题
 		String selection = "";
 		// String [] selectionArgs = new String [groups.length];
 		for (int i = 0; i < groups.length; i++) {
-			if (i > 0)
+			if (i > 0) {
 				selection += " OR ";
+			}
 			selection += groups[i] + "=1";
 		}
 		Log.d("Database", "selection is : " + selection);
 
-		Cursor cur = db.query(TabName_quiz, null, selection, null, null, null,
-				"random()", "0," + quizCounts[QuizType_Normal]);
+		Cursor cur = db.query(TabName_quiz,
+				null,
+				selection,
+				null,
+				null,
+				null,
+				"random()",
+				"0," + quizCounts[QuizType_Normal]);
 
 		ArrayList<ContentValues> quizlist = new ArrayList<ContentValues>();
 
@@ -596,13 +615,13 @@ public class Database {
 		// 生日
 		selection = "`is_show` AND ( ";
 		for (int i = 0; i < groups.length; i++) {
-			if (i > 0)
+			if (i > 0) {
 				selection += " OR ";
+			}
 			selection += "`group` like \"" + groups[i] + "\"";
 		}
 		selection += " )";
-		cur = db.query(
-				TabName_member,
+		cur = db.query(TabName_member,
 				null,
 				selection,
 				null,
@@ -621,18 +640,15 @@ public class Database {
 					ContentValues quiz = new ContentValues();
 					if (counter <= quizCounts[QuizType_Birthday]) {
 						quiz.put(Database.ColName_QUESTION,
-								cur.getString(cur.getColumnIndex("name"))
-										+ "的生日是哪一天?");
+								context.getString(R.string.database_t_q_birthday,
+										cur.getString(cur.getColumnIndex("name"))));
 
 						try {
-							Date birth = fmt.parse(cur.getString(cur
-									.getColumnIndex("birthday")));
-							String birthday = outputDateFormat.format(birth);
-							;
+							Date birth = fmt.parse(cur.getString(cur.getColumnIndex("birthday")));
+							String birthday = outputDateFormat.format(birth);;
 							quiz.put(Database.ColName_ANSWER, birthday);
 							int i = 1;
-							List<String> opt = new ArrayList<String>(
-									Arrays.asList(useableBirthday));
+							List<String> opt = new ArrayList<String>(Arrays.asList(useableBirthday));
 							while (i < 4) {
 								int t = r.nextInt(opt.size());
 								if (opt.get(t).equals(birthday)) {
@@ -643,21 +659,20 @@ public class Database {
 									i++;
 								}
 							}
-						} catch (ParseException e) {
+						}
+						catch (ParseException e) {
 							e.printStackTrace();
 						}
 
 					} else if (counter <= quizCounts[QuizType_Comefrom]
 							+ quizCounts[QuizType_Birthday]) {
 						quiz.put(Database.ColName_QUESTION,
-								cur.getString(cur.getColumnIndex("name"))
-										+ "是来自哪里的?");
-						String comefrom = cur.getString(cur
-								.getColumnIndex("comefrom"));
+								context.getString(R.string.database_t_q_comefrom,
+										cur.getString(cur.getColumnIndex("name"))));
+						String comefrom = cur.getString(cur.getColumnIndex("comefrom"));
 						quiz.put(Database.ColName_ANSWER, comefrom);
 						int i = 1;
-						ArrayList<String> opt = new ArrayList<String>(
-								Arrays.asList(useableComefrom));
+						ArrayList<String> opt = new ArrayList<String>(Arrays.asList(useableComefrom));
 						while (i < 4) {
 							int t = r.nextInt(opt.size());
 							if (opt.get(t).equals(comefrom)) {
@@ -673,16 +688,14 @@ public class Database {
 							+ quizCounts[QuizType_Birthday]
 							+ quizCounts[QuizType_Team]) {
 						quiz.put(Database.ColName_QUESTION,
-								cur.getString(cur.getColumnIndex("name"))
-										+ "是那个小队的?");
-						String team = cur
-								.getString(cur.getColumnIndex("group"))
+								context.getString(R.string.database_t_q_team,
+										cur.getString(cur.getColumnIndex("name"))));
+						String team = cur.getString(cur.getColumnIndex("group"))
 								+ " Team "
 								+ cur.getString(cur.getColumnIndex("team"));
 						quiz.put(Database.ColName_ANSWER, team);
 						int i = 1;
-						ArrayList<String> opt = new ArrayList<String>(
-								Arrays.asList(useableTeam));
+						ArrayList<String> opt = new ArrayList<String>(Arrays.asList(useableTeam));
 						while (i < 4) {
 							int t = r.nextInt(opt.size());
 							if (opt.get(t).equals(team)) {
@@ -713,14 +726,20 @@ public class Database {
 	 * @return
 	 */
 	public ArrayList<ContentValues> infoQery() {
-		if (!DBname.equals(DBName_quiz))
+		if (!DBname.equals(DBName_quiz)) {
 			return null;
+		}
 
 		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
 		db = dbh.getWritableDatabase();
-		Cursor cur = db.query(TabName_member, new String[] { "`_id`", "`name`","`comefrom`",
-				"`nickname`", "`group`", "`team`", "`birthday`" }, null, null, null,
-				null, null);
+		Cursor cur = db.query(TabName_member,
+				new String[] { "`_id`", "`name`", "`comefrom`", "`nickname`",
+						"`group`", "`team`", "`birthday`" },
+				null,
+				null,
+				null,
+				null,
+				null);
 		ArrayList<ContentValues> memberlist = new ArrayList<ContentValues>();
 
 		if (cur.getCount() > 0) {
@@ -736,6 +755,111 @@ public class Database {
 		db.close();
 		dbh.close();
 		return memberlist;
+	}
+
+	public String getTips(int type, int offset) {
+		if (!DBname.equals(DBName_quiz)) {
+			return null;
+		}
+		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
+		db = dbh.getWritableDatabase();
+		String sql;
+		Cursor cur;
+		String tips = null;
+		int maxid = 0;
+
+		switch (type) {
+		case QuizType_Birthday:
+			sql = "SELECT MAX(_id) FROM " + TabName_member;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+			maxid = cur.getInt(cur.getColumnIndex("MAX(_id)"));
+			cur.close();
+
+			sql = "SELECT * FROM `" + TabName_member + "` WHERE `_id` > "
+					+ offset % maxid;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+			try {
+				Date birth = fmt.parse(cur.getString(cur.getColumnIndex("birthday")));
+				String birthday = outputDateFormat.format(birth);
+				tips = context.getString(R.string.database_t_tips_birthday,
+						cur.getString(cur.getColumnIndex("name")),
+						birthday);
+			}
+			catch (ParseException e) {
+				e.printStackTrace();
+				cur.close();
+				db.close();
+				dbh.close();
+			}
+			break;
+		case QuizType_Comefrom:
+			sql = "SELECT MAX(_id) FROM " + TabName_member;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+			maxid = cur.getInt(cur.getColumnIndex("MAX(_id)"));
+			cur.close();
+
+			sql = "SELECT * FROM `" + TabName_member + "` WHERE `_id` > "
+					+ offset % maxid;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+
+			tips = context.getString(R.string.database_t_tips_comefrom,
+					cur.getString(cur.getColumnIndex("name")),
+					cur.getString(cur.getColumnIndex("comefrom")));
+
+			break;
+		case QuizType_Normal:
+			sql = "SELECT MAX(_id) FROM " + TabName_quiz;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+			maxid = cur.getInt(cur.getColumnIndex("MAX(_id)"));
+			cur.close();
+
+			sql = "SELECT * FROM `" + TabName_quiz + "` WHERE `_id` > "
+					+ offset % maxid;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+
+			tips = context.getString(R.string.database_t_tips_normal,
+					cur.getString(cur.getColumnIndex(ColName_QUESTION)),
+					cur.getString(cur.getColumnIndex(ColName_ANSWER)));
+			break;
+		case QuizType_Team:
+			sql = "SELECT MAX(_id) FROM " + TabName_member;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+			maxid = cur.getInt(cur.getColumnIndex("MAX(_id)"));
+			cur.close();
+
+			sql = "SELECT * FROM `" + TabName_member + "` WHERE `_id` > "
+					+ offset % maxid;
+			cur = db.rawQuery(sql, null);
+			cur.moveToFirst();
+
+			tips = context.getString(R.string.database_t_tips_team,
+					cur.getString(cur.getColumnIndex("name")),
+					cur.getString(cur.getColumnIndex("group")) + " Team "
+							+ cur.getString(cur.getColumnIndex("team")));
+			break;
+		default:
+			sql = "SELECT * FROM `" + TabName_member + "` WHERE `_id` > "
+					+ offset % maxid;
+			cur = db.rawQuery(sql, null);
+
+			tips = "";
+//			sb.append(cur.getString(cur.getColumnIndex("name")));
+//			sb.append("来自");
+//			sb.append(cur.getString(cur.getColumnIndex("comefrom")));
+			
+			break;
+		}
+		cur.close();
+		db.close();
+		dbh.close();
+		return tips;
 	}
 
 	/**
@@ -763,6 +887,64 @@ public class Database {
 		}
 		return counts;
 
+	}
+
+	private void loadOptions() {
+		if (DBname.equals(DBName_quiz)) {
+			Cursor cur = db.query("member_info",
+					new String[] { "comefrom" },
+					"`comefrom` IS NOT NULL AND `is_show`",
+					null,
+					"comefrom",
+					null,
+					null);
+			useableComefrom = new String[cur.getCount()];
+			if (cur.getCount() > 0) {
+				int i = 0;
+				while (cur.moveToNext()) {
+					useableComefrom[i] = cur.getString(cur.getColumnIndex("comefrom"));
+					i++;
+				}
+			}
+
+			cur = db.query("member_info",
+					new String[] { "birthday" },
+					"`birthday` IS NOT NULL AND `is_show`",
+					null,
+					"birthday",
+					null,
+					null);
+			useableBirthday = new String[cur.getCount()];
+			if (cur.getCount() > 0) {
+				int i = 0;
+				while (cur.moveToNext()) {
+					try {
+						Date birth = fmt.parse(cur.getString(cur.getColumnIndex("birthday")));
+
+						useableBirthday[i] = outputDateFormat.format(birth);
+					}
+					catch (ParseException e) {
+						e.printStackTrace();
+					}
+					i++;
+				}
+			}
+			cur = db.query("member_info",
+					new String[] { "`group`||' Team '||`team` AS `team`" },
+					"`team` IS NOT NULL AND `is_show`",
+					null,
+					"team",
+					null,
+					null);
+			useableTeam = new String[cur.getCount()];
+			if (cur.getCount() > 0) {
+				int i = 0;
+				while (cur.moveToNext()) {
+					useableTeam[i] = cur.getString(cur.getColumnIndex("team"));
+					i++;
+				}
+			}
+		}
 	}
 
 }
