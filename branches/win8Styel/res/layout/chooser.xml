@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chooser_body"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/background"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/padding_medium" >
+
+    <ToggleButton
+        android:id="@+id/akb_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="10dp"
+        android:background="@drawable/toogle_akb"
+        android:textOff=""
+        android:textOn="" />
+
+    <ToggleButton
+        android:id="@+id/ske_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/akb_toggle"
+        android:layout_margin="10dp"
+        android:background="@drawable/toogle_ske"
+        android:textOff=""
+        android:textOn="" />
+
+    <ToggleButton
+        android:id="@+id/nmb_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/ske_toggle"
+        android:layout_margin="10dp"
+        android:background="@drawable/toogle_nmb"
+        android:textOff=""
+        android:textOn="" />
+
+    <ToggleButton
+        android:id="@+id/hkt_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/nmb_toggle"
+        android:layout_margin="10dp"
+        android:background="@drawable/toogle_hkt"
+        android:textOff=""
+        android:textOn="" />
+    
+    <ToggleButton
+        android:id="@+id/snh_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/jkt_toggle"
+        android:layout_below="@+id/jkt_toggle"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/toogle_snh"
+        android:textOff=""
+        android:textOn="" />
+
+    <ToggleButton
+        android:id="@+id/ngzk_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/snh_toggle"
+        android:layout_below="@+id/snh_toggle"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/toogle_ngzk"
+        android:textOff=""
+        android:textOn="" />
+
+    <ToggleButton
+        android:id="@+id/jkt_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/game_start"
+        android:layout_alignTop="@+id/ske_toggle"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/toogle_jkt"
+        android:textOff=""
+        android:textOn="" />
+
+    <TextView
+        android:id="@+id/tips"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/difficulty"
+        android:layout_alignLeft="@+id/difficulty"
+        android:text="@string/chooser_diffi"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="gone" />
+
+    <RatingBar
+        android:id="@+id/difficulty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/game_start"
+        android:layout_centerHorizontal="true"
+        android:numStars="5"
+        android:rating="0.5"
+        android:stepSize="0.5"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/game_start"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:layout_marginBottom="17dp"
+        android:background="@drawable/button_normal"
+        android:text="@string/menu_start_game" />
+
+</RelativeLayout>
