@@ -5,4 +5,5 @@
         <item name="android:progressDrawable">@drawable/difficulty</item>    
         <item name="android:minHeight">30dip</item>
     </style>  
+    
 </resources>

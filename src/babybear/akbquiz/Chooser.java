@@ -26,6 +26,7 @@ public class Chooser extends Activity {
 	private static int MODE;
 
 	private boolean isChanged = false;
+	@Override
 	public void onCreate(Bundle InstanceState) {
 		super.onCreate(InstanceState);
 		setContentView(R.layout.chooser);
@@ -101,8 +102,9 @@ public class Chooser extends Activity {
 			@Override
 			public void onRatingChanged(RatingBar arg0, float rating,
 					boolean fromUser) {
-				if (!fromUser)
+				if (!fromUser) {
 					return;
+				}
 				difficulty = (int) (rating * 2);
 				isChanged = true;
 
@@ -120,8 +122,6 @@ public class Chooser extends Activity {
 							+ "/Android/data/"
 							+ getPackageName()
 							+ "/custom_bg.png"));
-		}else{
-			findViewById(R.id.chooser_body).setBackgroundResource(R.drawable.background);
 		}
 	}
 
@@ -196,8 +196,9 @@ public class Chooser extends Activity {
 				break;
 
 			case R.id.game_start:
-				if (isChanged)
+				if (isChanged) {
 					save();
+				}
 				
 				Intent intent = new Intent(Chooser.this, Quiz.class);
 				intent.putExtra(Database.GroupName_AKB48, AKB48IsChoosed);
@@ -221,6 +222,7 @@ public class Chooser extends Activity {
 
 	};
 
+	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == Activity.RESULT_OK) {
 			Intent result = new Intent(data);
@@ -232,8 +234,9 @@ public class Chooser extends Activity {
 	public boolean onKeydown(int keyCode, KeyEvent e) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_BACK:
-			if (isChanged)
+			if (isChanged) {
 				save();
+			}
 			finish();
 			break;
 		}
@@ -241,6 +244,7 @@ public class Chooser extends Activity {
 		return super.onKeyDown(keyCode, e);
 	}
 	
+	@Override
 	protected void onRestart() {
 		super.onRestart();
 	}

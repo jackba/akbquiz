@@ -194,7 +194,7 @@ public class MainMenu extends Activity {
 	public void onStart() {
 		super.onStart();
 		if (userList == null) {
-			firstRun();
+			createUser(false);
 		}
 		setBackground();
 	}
@@ -313,10 +313,10 @@ public class MainMenu extends Activity {
 					+ "/custom_bg.png");
 			if (file.exists()) {
 				menu_flipper.setBackgroundDrawable(Drawable.createFromPath(file.getPath()));
+
 			}
 		} else {
-			Log.d("setBackground()", "false");
-			menu_flipper.setBackgroundResource(R.drawable.background);
+			menu_flipper.setBackgroundColor(getResources().getColor(R.color.Dark_Purple));
 		}
 
 	}
@@ -621,67 +621,6 @@ public class MainMenu extends Activity {
 
 	};
 
-	/**
-	 * 首次运行
-	 */
-	private void firstRun() {
-
-		Editor cfg_Editor = sp_cfg.edit();
-		cfg_Editor.putBoolean(Database.KEY_switch_bg, true);
-		cfg_Editor.putBoolean(Database.KEY_switch_sound, true);
-		cfg_Editor.putBoolean(Database.KEY_switch_vibration, true);
-		cfg_Editor.putInt(Database.KEY_vol_bg, 10);
-		cfg_Editor.putInt(Database.KEY_vol_sound, 10);
-		cfg_Editor.putString(Database.ColName_playlist, "{}");
-		cfg_Editor.putBoolean(Database.KEY_use_custom_background, false);
-		cfg_Editor.putInt(Database.KEY_tips_info, 0);
-		cfg_Editor.putInt(Database.KEY_tips_quiz, 0);
-
-		cfg_Editor.commit();
-
-		AssetManager am = getAssets();
-		File fileout = new File(Database.databasePath);
-		if (!fileout.exists()) {
-			try {
-				InputStream is = am.open("q.db");
-
-				fileout.createNewFile();
-				FileOutputStream os = new FileOutputStream(fileout);
-
-				int temp = 0;
-				temp = is.read();
-				while (temp != -1) {
-					os.write(temp);
-					temp = is.read();
-				};
-
-				os.flush();
-				os.close();
-				is.close();
-
-			}
-			catch (FileNotFoundException e) {
-				Toast.makeText(this,
-						R.string.database_err_unfind,
-						Toast.LENGTH_SHORT).show();
-				finish();
-				e.printStackTrace();
-			}
-			catch (IOException e) {
-				Toast.makeText(this,
-						R.string.database_err_create,
-						Toast.LENGTH_SHORT).show();
-				finish();
-				e.printStackTrace();
-			}
-		}
-		File ext = new File(Environment.getExternalStorageDirectory().getPath()
-				+ "/Android/data/" + getPackageName());
-		if (!ext.exists()) {
-			ext.mkdirs();
-		}
-		createUser(false);
-	}
 
 	/**
 	 * 新浪微博认证的回调对象

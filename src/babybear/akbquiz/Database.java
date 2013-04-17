@@ -33,6 +33,7 @@ public class Database {
 	public static final String TabName_quiz = "quiz";
 	public static final String TabName_member = "member_info";
 
+	// 表`quiz`中各列的序号
 	public static final int ColIndex_ID = 0;
 	public static final int ColIndex_EDITOR = 1;
 	public static final int ColIndex_QUESTION = 2;
@@ -42,6 +43,7 @@ public class Database {
 	public static final int ColIndex_WRONG3 = 6;
 	public static final int ColIndex_DIFFICULTY = 7;
 
+	// 队伍代码
 	public static final int GroupOrder_NULL = -1;
 	public static final int GroupOrder_AKB48 = 0;
 	public static final int GroupOrder_SKE48 = 1;
@@ -52,6 +54,7 @@ public class Database {
 	public static final int GroupOrder_JKT48 = 8;
 	public static final int GroupOrder_SNH48 = 9;
 
+	// 队伍名
 	public static final String GroupName_AKB48 = "akb48";
 	public static final String GroupName_SKE48 = "ske48";
 	public static final String GroupName_NMB48 = "nmb48";
@@ -61,10 +64,17 @@ public class Database {
 	public static final String GroupName_JKT48 = "jkt48";
 	public static final String GroupName_SNH48 = "snh48";
 
+	// 队伍名数组 需要根据GroupOrder取
 	public static final String[] GroupNames = { GroupName_AKB48,
 			GroupName_SKE48,
-			GroupName_NMB48, GroupName_HKT48, "", "", GroupName_NGZK46,
-			GroupName_SDN48, GroupName_JKT48, GroupName_SNH48 };
+			GroupName_NMB48,
+			GroupName_HKT48,
+			"",
+			"",
+			GroupName_NGZK46,
+			GroupName_SDN48,
+			GroupName_JKT48,
+			GroupName_SNH48 };
 
 	public static final String ColName_id = "_id";
 	public static final String ColName_username = "username";
@@ -83,6 +93,7 @@ public class Database {
 	public static final String ColName_WRONG3 = "wrong_3";
 	public static final String ColName_DIFFICULTY = "difficulty";
 
+	// 存储在SharedPreferences中各项的KEY名
 	public static final String KEY_switch_bg = "switch_bg";
 	public static final String KEY_vol_bg = "vol_bg";
 	public static final String KEY_switch_sound = "switch_sound";
@@ -95,16 +106,20 @@ public class Database {
 	public static final String KEY_tips_info = "tips_info";
 	public static final String KEY_tips_quiz = "tips_info";
 
+	//
 	public static final String IDTag_weibo = "weibo_";
 
-	private static final int userdb_ver = 2;
-	private static final int quizdb_ver = 2;
+	// 数据库版本
+	public static final int userdb_ver = 2;
+	public static final int quizdb_ver = 2;
 
+	// 问题类型
 	public final static int QuizType_Normal = 0;
 	public final static int QuizType_Birthday = 1;
 	public final static int QuizType_Team = 2;
 	public final static int QuizType_Comefrom = 3;
 
+	// 决定各类题目出现的几率
 	public final static int QUIZ_RAND_MAX = 100;
 	public final static int QUIZ_DIVIDE_1 = 15;
 	public final static int QUIZ_DIVIDE_2 = 30;
@@ -134,6 +149,11 @@ public class Database {
 		fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 		outputDateFormat = new SimpleDateFormat(ctx.getString(R.string.database_datefmt),
 				Locale.getDefault());
+		
+		String[] dblist = context.databaseList();
+		for(String dbname:dblist){
+			Log.d("", dbname);
+		}
 	}
 
 	private class DatabaseHelper extends SQLiteOpenHelper {
@@ -168,41 +188,6 @@ public class Database {
 				values.put(ColName_createTime, t.getTime());
 				values.put(ColName_extend, 0);
 				db.insert(TabName_user, null, values);
-			} else if (DBname.equals(DBName_quiz)) {
-				AssetManager am = context.getAssets();
-				File fileout = new File(databasePath);
-				if (!fileout.exists()) {
-					try {
-						InputStream is = am.open("q.db");
-
-						fileout.createNewFile();
-						FileOutputStream os = new FileOutputStream(fileout);
-
-						int temp = 0;
-						temp = is.read();
-						while (temp != -1) {
-							os.write(temp);
-							temp = is.read();
-						}
-
-						os.flush();
-						os.close();
-						is.close();
-
-					}
-					catch (FileNotFoundException e) {
-						Toast.makeText(context,
-								R.string.database_err_unfind,
-								Toast.LENGTH_SHORT).show();
-						e.printStackTrace();
-					}
-					catch (IOException e) {
-						Toast.makeText(context,
-								R.string.database_err_create,
-								Toast.LENGTH_SHORT).show();
-						e.printStackTrace();
-					}
-				}
 			}
 
 		}
@@ -217,42 +202,6 @@ public class Database {
 							+ ColName_user_identity + "` TEXT ;";
 					db.execSQL(sql);
 					break;
-				}
-			} else if (DBname.equals(DBName_quiz)) {
-				AssetManager am = context.getAssets();
-				File fileout = new File(databasePath);
-				fileout.delete();
-				if (!fileout.exists()) {
-					try {
-						InputStream is = am.open("q.db");
-
-						fileout.createNewFile();
-						FileOutputStream os = new FileOutputStream(fileout);
-
-						int temp = 0;
-						temp = is.read();
-						while (temp != -1) {
-							os.write(temp);
-							temp = is.read();
-						};
-
-						os.flush();
-						os.close();
-						is.close();
-
-					}
-					catch (FileNotFoundException e) {
-						Toast.makeText(context,
-								R.string.database_update_err_unfind,
-								Toast.LENGTH_SHORT).show();
-						e.printStackTrace();
-					}
-					catch (IOException e) {
-						Toast.makeText(context,
-								R.string.database_update_err_create,
-								Toast.LENGTH_SHORT).show();
-						e.printStackTrace();
-					}
 				}
 			}
 
@@ -296,8 +245,7 @@ public class Database {
 		long n = db.insert(TabName_user, null, values);
 		Toast.makeText(context,
 				context.getString(R.string.database_user_created, username),
-				Toast.LENGTH_SHORT)
-				.show();
+				Toast.LENGTH_SHORT).show();
 
 		db.close();
 		dbh.close();
@@ -344,8 +292,7 @@ public class Database {
 
 		Toast.makeText(context,
 				context.getString(R.string.database_user_removed, username),
-				Toast.LENGTH_SHORT)
-				.show();
+				Toast.LENGTH_SHORT).show();
 		db.close();
 		dbh.close();
 	}
@@ -470,6 +417,7 @@ public class Database {
 	 * @return 题目内容
 	 */
 	@Deprecated
+	/*
 	public ArrayList<ContentValues> QuizQuery(int n) {
 		if (!DBname.equals(DBName_quiz)) {
 			return null;
@@ -501,6 +449,7 @@ public class Database {
 		dbh.close();
 		return quizlist;
 	}
+	//*/
 
 	/**
 	 * 通过难度和团体获取 20个题目 因难度不可用 还未启用
@@ -509,6 +458,7 @@ public class Database {
 	 * @param groups 相关的团
 	 * @return 题目内容
 	 */
+	/*
 	public ArrayList<ContentValues> QuizQuery(int difficulty, String[] groups) {
 
 		if (!DBname.equals(DBName_quiz)) {
@@ -556,7 +506,7 @@ public class Database {
 		dbh.close();
 		return quizlist;
 	}
-
+	//*/
 	/**
 	 * 根据团体获取20个题目
 	 * 
@@ -570,15 +520,16 @@ public class Database {
 		}
 
 		if (groups.length == 0) {
+			/*/
 			return QuizQuery(20);
+			//*/
 		}
 
+		//dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
+		db = context.openOrCreateDatabase(DBName_quiz, Context.MODE_PRIVATE, null);
 
+		// 获取每种题目需要多少个
 		int[] quizCounts = this.getCountEachType(20);
-
-		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
-		db = dbh.getWritableDatabase();
-
 		loadOptions();
 		// 一般问题
 		String selection = "";
@@ -612,7 +563,7 @@ public class Database {
 			}
 		}
 
-		// 生日
+		// 其他问题
 		selection = "`is_show` AND ( ";
 		for (int i = 0; i < groups.length; i++) {
 			if (i > 0) {
@@ -631,6 +582,8 @@ public class Database {
 				"0,"
 						+ (quizCounts[QuizType_Birthday]
 								+ quizCounts[QuizType_Comefrom] + quizCounts[QuizType_Team]));
+
+		// 记录其他问题有几个
 		int counter = 0;
 
 		Random r = new Random();
@@ -716,7 +669,7 @@ public class Database {
 
 		cur.close();
 		db.close();
-		dbh.close();
+		//dbh.close();
 		return quizlist;
 	};
 
@@ -730,16 +683,15 @@ public class Database {
 			return null;
 		}
 
-		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
-		db = dbh.getWritableDatabase();
-		Cursor cur = db.query(TabName_member,
-				new String[] { "`_id`", "`name`", "`comefrom`", "`nickname`",
-						"`group`", "`team`", "`birthday`" },
-				null,
-				null,
-				null,
-				null,
-				null);
+		//dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
+		db = context.openOrCreateDatabase(DBName_quiz, Context.MODE_PRIVATE, null);;
+		Cursor cur = db.query(TabName_member, new String[] { "`_id`",
+				"`name`",
+				"`comefrom`",
+				"`nickname`",
+				"`group`",
+				"`team`",
+				"`birthday`" }, null, null, null, null, null);
 		ArrayList<ContentValues> memberlist = new ArrayList<ContentValues>();
 
 		if (cur.getCount() > 0) {
@@ -753,16 +705,23 @@ public class Database {
 		}
 		cur.close();
 		db.close();
-		dbh.close();
+		//dbh.close();
 		return memberlist;
 	}
 
+	/**
+	 * 获取小贴士
+	 *  FIXME ID不连续的时候 offset+1会重复某个题目
+	 * @param type 类型
+	 * @param offset 防止重复的offset
+	 * @return 小贴士的内容
+	 */
 	public String getTips(int type, int offset) {
 		if (!DBname.equals(DBName_quiz)) {
 			return null;
 		}
-		dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
-		db = dbh.getWritableDatabase();
+		//dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
+		db = context.openOrCreateDatabase(DBName_quiz, Context.MODE_PRIVATE, null);;
 		String sql;
 		Cursor cur;
 		String tips = null;
@@ -850,15 +809,15 @@ public class Database {
 			cur = db.rawQuery(sql, null);
 
 			tips = "";
-//			sb.append(cur.getString(cur.getColumnIndex("name")));
-//			sb.append("来自");
-//			sb.append(cur.getString(cur.getColumnIndex("comefrom")));
-			
+			// sb.append(cur.getString(cur.getColumnIndex("name")));
+			// sb.append("来自");
+			// sb.append(cur.getString(cur.getColumnIndex("comefrom")));
+
 			break;
 		}
 		cur.close();
 		db.close();
-		dbh.close();
+		//dbh.close();
 		return tips;
 	}
 
@@ -889,7 +848,14 @@ public class Database {
 
 	}
 
+	/**
+	 * 加载除了一般题目以外题目的可用选项
+	 * 注意 需要db已经打开
+	 */
 	private void loadOptions() {
+		if (db == null || !db.isOpen()) {
+			return;
+		}
 		if (DBname.equals(DBName_quiz)) {
 			Cursor cur = db.query("member_info",
 					new String[] { "comefrom" },

@@ -34,10 +34,11 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.Toast;
-
 
 @SuppressLint("NewApi")
 public class CalendarEditor extends Activity {
@@ -177,6 +178,10 @@ public class CalendarEditor extends Activity {
 	// 保存已添加的成员
 	private Map<String, HashMap<String, String>> settings;
 
+	// 强制删除模式
+	private boolean forceClear = false;
+	private int forceClearCounter = 0;
+
 	private ContentResolver cr;
 	private Database db;
 	private Handler handler = new Handler();
@@ -224,12 +229,30 @@ public class CalendarEditor extends Activity {
 
 			@Override
 			public void onClick(View v) {
+				if (v.getId() != R.id.clear) {
+					if (forceClear) {
+						forceClear = false;
+					}
+				}
 				switch (v.getId()) {
 				case R.id.back:
 					finish();
 					break;
 				case R.id.clear:
-					clearAll();
+					if (forceClear) {
+						if (forceClearCounter > 3) {
+							forceClear();
+						} else {
+
+							forceClearCounter++;
+							Toast.makeText(CalendarEditor.this,
+									getString(R.string.calendar_forceclear,
+											4 - forceClearCounter),
+									Toast.LENGTH_SHORT).show();
+						}
+					} else {
+						clearAll();
+					}
 					break;
 				case R.id.calendar_editor_choose:
 					getCalander();
@@ -240,6 +263,18 @@ public class CalendarEditor extends Activity {
 		findViewById(R.id.back).setOnClickListener(l);
 		findViewById(R.id.clear).setOnClickListener(l);
 		findViewById(R.id.calendar_editor_choose).setOnClickListener(l);
+
+		((Button) findViewById(R.id.clear)).setOnLongClickListener(new OnLongClickListener() {
+
+			@Override
+			public boolean onLongClick(View v) {
+				if (v.getId() == R.id.clear) {
+					forceClear = true;
+				}
+
+				return false;
+			}
+		});
 
 		memberList = (ExpandableListView) findViewById(R.id.member_list);
 
@@ -531,12 +566,9 @@ public class CalendarEditor extends Activity {
 	 * 向用户请求一个可用日历的ID 直接设置到calendarId
 	 */
 	private void getCalander() {
-		Cursor cur = cr.query(calanderUri,
-				new String[] { "_id", KEY_CALENDAR_NAME,
-						KEY_CALENDAR_DISPLAY_NAME },
-				null,
-				null,
-				null);
+		Cursor cur = cr.query(calanderUri, new String[] { "_id",
+				KEY_CALENDAR_NAME,
+				KEY_CALENDAR_DISPLAY_NAME }, null, null, null);
 		calList = new ArrayList<ContentValues>();
 		ArrayList<String> items = new ArrayList<String>();
 		if (cur.getCount() > 0) {
@@ -685,6 +717,19 @@ public class CalendarEditor extends Activity {
 	};
 
 	/**
+	 * 强行删除可能是本应用添加的所有事件
+	 * 适用于设置文件丢失
+	 */
+	private void forceClear() {
+		int counter = cr.delete(calanderEventUri, "`" + KEY_EVENT_DESCRIPTION
+				+ "` like \"%%"
+				+ getString(R.string.calendar_event_title, "%%") + "\"", null);
+		Toast.makeText(this,
+				getString(R.string.calendar_clear_echo, counter),
+				Toast.LENGTH_SHORT).show();
+		}
+
+	/**
 	 * ExpandableListView用到的 OnChildClickListener
 	 */
 	private OnChildClickListener listener = new OnChildClickListener() {
@@ -696,7 +741,8 @@ public class CalendarEditor extends Activity {
 				int childPosition,
 				long id) {
 			Boolean isChecked = Boolean.parseBoolean(memberListAdapter.getChild(groupPosition,
-					childPosition).get(KEY_CHILD_ADDED));
+					childPosition)
+					.get(KEY_CHILD_ADDED));
 			if (isChecked) {
 				String name = memberListAdapter.getChild(groupPosition,
 						childPosition).get(KEY_CHILD_NAME);

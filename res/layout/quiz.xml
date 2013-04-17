@@ -3,7 +3,7 @@
     android:id="@+id/quiz_body"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/background"
+    android:background="@color/Dark_Purple"
     android:orientation="vertical" >
 
     <TextView
@@ -20,50 +20,61 @@
         android:id="@+id/quiz"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:layout_weight="10"
-        android:background="@drawable/quiz_box"
+        android:background="@drawable/button_win8_blue"
         android:padding="10dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="#000" />
+        android:textColor="@color/White" />
 
     <Button
         android:id="@+id/button_A"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="5dp"
         android:layout_weight="2"
-        android:background="@drawable/selector_answer_box" />
+        android:background="@drawable/button_win8_brown"
+        android:textColor="@color/White" />
 
     <Button
         android:id="@+id/button_B"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="5dp"
         android:layout_weight="2"
-        android:background="@drawable/selector_answer_box" />
+        android:background="@drawable/button_win8_green"
+        android:textColor="@color/White" />
 
     <Button
         android:id="@+id/button_C"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="5dp"
         android:layout_weight="2"
-        android:background="@drawable/selector_answer_box" />
+        android:background="@drawable/button_win8_orange"
+        android:textColor="@color/White" />
 
     <Button
         android:id="@+id/button_D"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="5dp"
         android:layout_weight="2"
-        android:background="@drawable/selector_answer_box" />
+        android:background="@drawable/button_win8_brown"
+        android:textColor="@color/White" />
 
 </LinearLayout>

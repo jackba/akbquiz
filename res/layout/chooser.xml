@@ -2,8 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/chooser_body"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/background"
+    android:layout_height="match_parent"
+    android:background="@color/Dark_Purple"
     android:orientation="vertical"
     android:paddingLeft="@dimen/padding_medium" >
 
@@ -111,13 +111,15 @@
 
     <Button
         android:id="@+id/game_start"
+        style="@style/win8_button_large"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_margin="10dp"
-        android:layout_marginBottom="17dp"
-        android:background="@drawable/button_normal"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:background="@drawable/button_win8_coral"
         android:text="@string/menu_start_game" />
 
 </RelativeLayout>
