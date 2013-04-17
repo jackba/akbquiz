@@ -3,7 +3,7 @@
     android:id="@+id/menu_flipper"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/background"
+    android:background="@color/Dark_Purple"
     android:flipInterval="400"
     android:inAnimation="@android:anim/slide_in_left"
     android:outAnimation="@android:anim/slide_out_right"
@@ -13,53 +13,66 @@
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent" >
 
-	    <ImageView
-	        android:id="@+id/imageView1"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_alignParentTop="true"
-	        android:layout_centerHorizontal="true"
-	        android:layout_marginTop="48dp"
-	        android:contentDescription="@string/groupname_akb48"
-	        android:src="@drawable/manu_title" />
-
 	    <LinearLayout
 	        android:id="@+id/linearLayout1"
-	        android:layout_width="wrap_content"
+	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
 	        android:layout_centerHorizontal="true"
-	        android:layout_centerVertical="true"
+	        android:layout_marginBottom="25dp"
+	        android:layout_marginLeft="40dp"
+	        android:layout_marginRight="40dp"
 	        android:orientation="vertical" >
 
 	        <Button
 	            android:id="@+id/start"
-	            android:layout_width="wrap_content"
+	            style="@style/win8_button_large"
+	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
-	            android:layout_margin="10dp"
-	            android:background="@drawable/selector_menu_start" />
+	            android:layout_margin="5dp"
+	            android:background="@drawable/button_win8_orange"
+	            android:text="@string/menu_start_game" />
 
 	        <Button
 	            android:id="@+id/record"
-	            android:layout_width="wrap_content"
+	            style="@style/win8_button_large"
+	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
-	            android:layout_margin="10dp"
-	            android:background="@drawable/selector_menu_record" />
+	            android:layout_margin="5dp"
+	            android:background="@drawable/button_win8_teal"
+	            android:text="@string/menu_record" />
 
 	        <Button
 	            android:id="@+id/users"
-	            android:layout_width="wrap_content"
+	            style="@style/win8_button_large"
+	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
-	            android:layout_margin="10dp"
-	            android:background="@drawable/selector_menu_user" />
+	            android:layout_margin="5dp"
+	            android:background="@drawable/button_win8_lime"
+	            android:text="@string/menu_users" />
 
 	        <Button
 	            android:id="@+id/config"
-	            android:layout_width="wrap_content"
+	            style="@style/win8_button_large"
+	            android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
-	            android:layout_margin="10dp"
-	            android:background="@drawable/selector_menu_config" />
+	            android:layout_margin="5dp"
+	            android:background="@drawable/button_win8_marine"
+	            android:text="@string/menu_config" />
 
 	    </LinearLayout>
+
+	    <TextView
+	        android:id="@+id/textView1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentTop="true"
+	        android:layout_margin="25dp"
+	        android:text="@string/app_name"
+	        android:textAppearance="?android:attr/textAppearanceLarge"
+	        android:textColor="@color/White"
+	        android:textSize="50sp" />
 	
 	</RelativeLayout>
 	

@@ -49,10 +49,11 @@ import com.weibo.sdk.android.util.Utility;
 
 public class Quiz extends Activity {
 	private static final String TAG = "Quiz";
-	private static final long[] v_right = { 100, 100, 100, 100 }, v_wrong = {
-			100, 300, 100, 500 };
+	private static final long[] v_right = { 100, 100, 100, 100 },
+			v_wrong = { 100, 300, 100, 500 };
 	private static final String[] ColName = { Database.ColName_ANSWER,
-			Database.ColName_WRONG1, Database.ColName_WRONG2,
+			Database.ColName_WRONG1,
+			Database.ColName_WRONG2,
 			Database.ColName_WRONG3 };
 
 	// 问题相关
@@ -63,12 +64,27 @@ public class Quiz extends Activity {
 	String[] groups;
 
 	// 界面
+	int[] btnDrawableIds = { R.drawable.button_win8_blue,
+			R.drawable.button_win8_brown,
+			R.drawable.button_win8_coral,
+			R.drawable.button_win8_green,
+			R.drawable.button_win8_lime,
+			R.drawable.button_win8_magenta,
+			R.drawable.button_win8_marine,
+			R.drawable.button_win8_orange,
+			R.drawable.button_win8_pink,
+			R.drawable.button_win8_purple,
+			R.drawable.button_win8_purple_l,
+			R.drawable.button_win8_red,
+			R.drawable.button_win8_teal };
 	private Button[] Buttons = new Button[4];
 	private TextView quiz_Question = null;
 	private TextView quiz_Title = null;
 
 	// Loading 界面
 	private ProgressBar loading = null;
+	private Animation petal_1 = null;
+	private Animation petal_2 = null;
 
 	// 正误动画
 	private PopupWindow Right = null, Wrong = null;
@@ -118,6 +134,20 @@ public class Quiz extends Activity {
 		Wrong = new PopupWindow(wrongView);
 		Wrong.setWidth(LayoutParams.FILL_PARENT);
 		Wrong.setHeight(LayoutParams.FILL_PARENT);
+
+		petal_1 = AnimationUtils.loadAnimation(this, R.anim.twinkling);
+		petal_1.setFillEnabled(true);
+		petal_1.setFillAfter(true);
+		findViewById(R.id.petal_1).setAnimation(petal_1);
+
+		petal_2 = AnimationUtils.loadAnimation(this, R.anim.twinkling);
+		petal_2.setFillEnabled(true);
+		petal_2.setFillAfter(true);
+		findViewById(R.id.petal_2).setAnimation(petal_2);
+		petal_2.setStartOffset(petal_1.getDuration() / 2
+				+ petal_1.getStartOffset());
+		petal_1.startNow();
+		petal_2.startNow();
 
 		// loading = new ProgressDialog(this);
 		// loading.setCancelable(false);
@@ -267,8 +297,6 @@ public class Quiz extends Activity {
 			findViewById(R.id.quiz_body).setBackgroundDrawable(Drawable.createFromPath(Environment.getExternalStorageDirectory()
 					.getPath()
 					+ "/Android/data/" + getPackageName() + "/custom_bg.png"));
-		} else {
-			findViewById(R.id.quiz_body).setBackgroundResource(R.drawable.background);
 		}
 	}
 
@@ -334,9 +362,8 @@ public class Quiz extends Activity {
 		quiz_Question.setText(getString(R.string.quiz_question,
 				quizIndex + 1,
 				quizList.size(),
-				a_quiz.getAsString(Database.ColName_QUESTION)))
-				;
-
+				a_quiz.getAsString(Database.ColName_QUESTION)));
+		quiz_Question.setBackgroundResource(btnDrawableIds[r.nextInt(btnDrawableIds.length)]);
 		int[] answer_index = new int[4];
 		for (int i = 0; i < 4; i++) {
 			flag = false;
@@ -355,6 +382,7 @@ public class Quiz extends Activity {
 			}
 			answer_index[i] = temp;
 			Buttons[i].setText(a_quiz.getAsString(ColName[temp]));
+			Buttons[i].setBackgroundResource(btnDrawableIds[r.nextInt(btnDrawableIds.length)]);
 			// Log.d(TAG,"answer_index["+i+"] = "+answer_index[i]);
 		}
 

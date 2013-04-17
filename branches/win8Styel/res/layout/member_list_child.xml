@@ -14,13 +14,13 @@
         android:paddingLeft="20dp"
         android:paddingTop="5dp"
         android:text=""
-        android:textColor="#000"
+        android:textColor="@color/White"
         android:textSize="20sp" />
 
     <CheckBox
         android:id="@+id/isAdded"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="fill_parent"
         android:layout_weight="1"
         android:clickable="false" />
 

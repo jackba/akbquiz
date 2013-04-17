@@ -57,6 +57,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.ViewFlipper;
+import babybear.akbquiz.BgMusic.BGHandler;
 
 import com.weibo.sdk.android.Oauth2AccessToken;
 import com.weibo.sdk.android.WeiboAuthListener;
@@ -195,19 +196,24 @@ public class ConfigActivity extends Activity {
 
 		// 循环模式
 		loopmode = sp_cfg.getInt(Database.KEY_bgm_loopmode, BgMusic.MODE_LOOP);
+		Log.d("config", "loopmode = " + loopmode);
 		switch (loopmode) {
 		case BgMusic.MODE_LOOP:
 			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_loop);
+			break;
 		case BgMusic.MODE_RANDOM:
 			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_random);
+			break;
 		case BgMusic.MODE_SINGLE:
 			((Button) findViewById(R.id.config_loopmode)).setText(R.string.config_single);
+			break;
 		}
 		// 更换背景图片
 
 		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
 			cfgflipper.setBackgroundDrawable(Drawable.createFromPath(customBgImage.getPath()));
 		}
+
 
 		OnClickListener clickListener = new OnClickListener() {
 
@@ -217,9 +223,9 @@ public class ConfigActivity extends Activity {
 				case R.id.bgm_switch:
 					boolean isBgOn = ((ToggleButton) v).isChecked();
 					cfgEditor.putBoolean(Database.KEY_switch_bg, isBgOn);
-					Message msg = new Message();
-					msg.what = isBgOn ? 1 : 0;
-					msg.arg1 = BgMusic.BGHandler.SWITCH_CHANGE;
+					Message msg = BgMusic.bgHandler.obtainMessage(BgMusic.BGHandler.SWITCH_CHANGE,
+							isBgOn ? 1 : 0,
+							0);
 					BgMusic.bgHandler.sendMessage(msg);
 					break;
 				case R.id.sound_switch:
@@ -343,9 +349,9 @@ public class ConfigActivity extends Activity {
 				switch (arg0.getId()) {
 				case R.id.bgm_volume:
 					cfgEditor.putInt(Database.KEY_vol_bg, arg1);
-					Message msg = new Message();
-					msg.what = arg1;
-					msg.arg1 = BgMusic.BGHandler.VOL_CHANGE;
+					Message msg = BgMusic.bgHandler.obtainMessage(BgMusic.BGHandler.VOL_CHANGE,
+							arg1,
+							0);
 					BgMusic.bgHandler.sendMessage(msg);
 					break;
 				case R.id.sound_volume:
@@ -374,7 +380,8 @@ public class ConfigActivity extends Activity {
 	 * 取消自定义背景图片
 	 */
 	protected void restoreBgImage() {
-		cfgflipper.setBackgroundResource(R.drawable.background);
+		// cfgflipper.setBackgroundResource(R.drawable.background);
+		cfgflipper.setBackgroundColor(getResources().getColor(R.color.Dark_Purple));
 		cfgEditor.putBoolean(Database.KEY_use_custom_background, false);
 		cfgEditor.commit();
 	}
@@ -424,8 +431,8 @@ public class ConfigActivity extends Activity {
 		}
 		cfgEditor.putInt(Database.KEY_bgm_loopmode, loopmode);
 		cfgEditor.commit();
-		Message msg = BgMusic.bgHandler.obtainMessage(loopmode,
-				BgMusic.BGHandler.LOOP_CHANGE,
+		Message msg = BgMusic.bgHandler.obtainMessage(BgMusic.BGHandler.LOOP_CHANGE,
+				loopmode,
 				0);
 		BgMusic.bgHandler.sendMessage(msg);
 
@@ -529,7 +536,9 @@ public class ConfigActivity extends Activity {
 		for (int i = 0, length = playlistList.size(); i < length; i++) {
 			arr.put(playlistList.get(i).DATA);
 		}
-		cfgEditor.putString("playlist", arr.toString());
+		BgMusic.bgHandler.sendEmptyMessage(BGHandler.PLAYLIST_CHANGE);
+		cfgEditor.putString(Database.ColName_playlist, arr.toString());
+		cfgEditor.commit();
 	}
 
 	/**
@@ -747,7 +756,6 @@ public class ConfigActivity extends Activity {
 	 * 发现新版本要做的
 	 */
 	private void doNewVersionUpdate() {
-		StringBuffer sb = new StringBuffer();
 		Dialog dialog = new AlertDialog.Builder(this).setTitle(R.string.update_title)
 				.setMessage(getString(R.string.update_have_update,
 						verName,
@@ -937,9 +945,8 @@ public class ConfigActivity extends Activity {
 					return false;
 				}
 			}
-		}
-		catch (Exception e) {
-			Log.e(TAG, e.getMessage());
+		}catch (Exception e) {
+			Toast.makeText(this, R.string.update_err_getver, Toast.LENGTH_SHORT).show();
 			return false;
 		}
 		return true;

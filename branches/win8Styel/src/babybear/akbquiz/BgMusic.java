@@ -26,7 +26,6 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
-
 public class BgMusic extends Service {
 	private static final String TAG = "BgMusic";
 	public static final int MODE_LOOP = 0, MODE_RANDOM = 1, MODE_SINGLE = 2;
@@ -205,14 +204,14 @@ public class BgMusic extends Service {
 				if (Intent.ACTION_SCREEN_ON.equals(action)) {
 					Log.d(TAG, "SCREEN ON");
 					if (isOn) {
-						if (!player.isPlaying()) {
+						if (player != null && !player.isPlaying()) {
 							player.start();
 						}
 					}
 					isScreenOn = true;
 				} else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
 					Log.d(TAG, "SCREEN OFF");
-					if (player.isPlaying()) {
+					if (player != null && player.isPlaying()) {
 						player.pause();
 					}
 					isScreenOn = false;
@@ -236,9 +235,9 @@ public class BgMusic extends Service {
 					while (isRunning) {
 						msg = bgHandler.obtainMessage();
 						if (isScreenOn && isAppOnForeground()) {
-							msg.arg1 = BGHandler.PLAY;
+							msg.what = BGHandler.PLAY;
 						} else {
-							msg.arg1 = BGHandler.PAUSE;
+							msg.what = BGHandler.PAUSE;
 						}
 						bgHandler.sendMessage(msg);
 						Thread.sleep(1000);
@@ -284,9 +283,9 @@ public class BgMusic extends Service {
 		@Override
 		public void handleMessage(Message msg) {
 			BgMusic theService = mService.get();
-			// Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : " +
-			// msg.what);
-			switch (msg.arg1) {
+			Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : "
+					+ msg.what);
+			switch (msg.what) {
 			case PAUSE:
 				if (theService.player != null) {
 					if (theService.player.isPlaying()) {
@@ -297,8 +296,8 @@ public class BgMusic extends Service {
 			case PLAY:
 				if (theService.player != null) {
 					if (!theService.player.isPlaying()) {
-							if (theService.isOn) {
-								theService.player.start();
+						if (theService.isOn) {
+							theService.player.start();
 						}
 					}
 				}
@@ -306,11 +305,11 @@ public class BgMusic extends Service {
 
 			case VOL_CHANGE:
 				theService.am.setStreamVolume(AudioManager.STREAM_MUSIC,
-						msg.what,
+						msg.arg1,
 						0);
 				break;
 			case SWITCH_CHANGE:
-				switch (msg.what) {
+				switch (msg.arg1) {
 				case 0:
 					theService.isOn = false;
 					if (theService.player != null) {
@@ -326,7 +325,7 @@ public class BgMusic extends Service {
 				}
 				break;
 			case LOOP_CHANGE:
-				theService.mode = msg.what;
+				theService.mode = msg.arg1;
 				break;
 			case PLAYLIST_CHANGE:
 				if (theService.player != null) {
@@ -342,15 +341,21 @@ public class BgMusic extends Service {
 						.getString(Database.ColName_playlist, ""));
 
 				if (theService.playlistLength > 0) {
-					theService.player = MediaPlayer.create(theService,
-							theService.playlist[theService.PlayingNo]);
-					if (theService.isOn) {
-						theService.player.start();
+					if (theService.player != null
+							|| !theService.player.isPlaying()) {
+
+						theService.player = MediaPlayer.create(theService,
+								theService.playlist[theService.PlayingNo]);
+						if (theService.isOn) {
+							theService.player.start();
+						}
+
+						theService.player.setLooping(false);
+						theService.player.setOnCompletionListener(theService.CompL);
 					}
 				}
 
-				theService.player.setLooping(false);
-				theService.player.setOnCompletionListener(theService.CompL);
+
 				break;
 			}
 			super.handleMessage(msg);

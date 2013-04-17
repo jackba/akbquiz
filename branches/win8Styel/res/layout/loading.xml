@@ -3,7 +3,7 @@
     android:id="@+id/loading_body"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/background" >
+    android:background="@color/Dark_Purple" >
 
     <ProgressBar
         android:id="@+id/progress"
@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_margin="20dp" />
+        android:layout_margin="20dp"
+        android:progressDrawable="@drawable/progress_win8" />
 
     <TextView
         android:id="@+id/tips"
@@ -24,5 +25,23 @@
         android:layout_marginRight="20dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textIsSelectable="false" />
+
+    <ImageView
+        android:id="@+id/petal_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/petal_half_1" 
+        android:contentDescription="@string/fanhuashe"/>
+
+    <ImageView
+        android:id="@+id/petal_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/petal_half_2" 
+        android:contentDescription="@string/fanhuashe"/>
 
 </RelativeLayout>
