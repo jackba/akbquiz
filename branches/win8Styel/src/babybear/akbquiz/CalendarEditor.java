@@ -702,7 +702,7 @@ public class CalendarEditor extends Activity {
 	 * 清除所有本应用添加的事件
 	 */
 	private void clearAll() {
-
+		if(settings==null)return;
 		Set<String> keys = settings.keySet();
 		int count = 0;
 		for (String key : keys) {
@@ -714,7 +714,7 @@ public class CalendarEditor extends Activity {
 		Toast.makeText(this,
 				getString(R.string.calendar_clear_echo, count),
 				Toast.LENGTH_SHORT).show();
-	};
+	}
 
 	/**
 	 * 强行删除可能是本应用添加的所有事件

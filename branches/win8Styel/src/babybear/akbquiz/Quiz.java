@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.R.integer;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -58,9 +59,10 @@ public class Quiz extends Activity {
 
 	// 问题相关
 	private static ArrayList<ContentValues> quizList = null;
+	private static ArrayList<ContentValues> quizListCache = null;
 	private static boolean isPlaying = false;
 	private int correct_answer = 0;
-	private int difficulty = 0;
+	private int gameMode = 0;
 	String[] groups;
 
 	// 界面
@@ -97,6 +99,7 @@ public class Quiz extends Activity {
 	// 计数器、计时器、指针
 	private Timer timer = new Timer(true);
 	private int right_count = 0, wrong_count = 0, time_count = 0;
+	private int counter = 0;
 	private static int quizIndex = 0;
 
 	QuizHandler handler;
@@ -159,32 +162,16 @@ public class Quiz extends Activity {
 		loading.setMax(100);
 
 		Bundle data = this.getIntent().getExtras();
+		boolean[] groupIsChoose = data.getBooleanArray(Chooser.KeyName_groups);
 		ArrayList<String> group = new ArrayList<String>();
-		if (data.getBoolean(Database.GroupName_AKB48)) {
-			group.add(Database.GroupName_AKB48);
-		}
-		if (data.getBoolean(Database.GroupName_SKE48)) {
-			group.add(Database.GroupName_SKE48);
-		}
-		if (data.getBoolean(Database.GroupName_NMB48)) {
-			group.add(Database.GroupName_NMB48);
-		}
-		if (data.getBoolean(Database.GroupName_HKT48)) {
-			group.add(Database.GroupName_HKT48);
-		}
-		if (data.getBoolean(Database.GroupName_NGZK46)) {
-			group.add(Database.GroupName_NGZK46);
-		}
-		if (data.getBoolean(Database.GroupName_SDN48)) {
-			group.add(Database.GroupName_SDN48);
-		}
-		if (data.getBoolean(Database.GroupName_JKT48)) {
-			group.add(Database.GroupName_JKT48);
-		}
-		if (data.getBoolean(Database.GroupName_SNH48)) {
-			group.add(Database.GroupName_SNH48);
+		for (int i = 0; i < groupIsChoose.length; i++) {
+			if (groupIsChoose[i]) {
+				group.add(Database.GroupNames[i]);
+			}
 		}
 		groups = group.toArray(new String[0]);
+		gameMode = data.getInt(Chooser.KeyName_mode, Chooser.GAMEMODE_NORMAL);
+
 		// quizList = db.QuizQuery(data.getInt(Database.ColName_DIFFICULTY, 1),
 		// groups.toArray(new String[0]));
 
@@ -298,6 +285,7 @@ public class Quiz extends Activity {
 					.getPath()
 					+ "/Android/data/" + getPackageName() + "/custom_bg.png"));
 		}
+		counter = 1;
 	}
 
 	@Override
@@ -346,7 +334,16 @@ public class Quiz extends Activity {
 		Log.d("Quiz", "get " + quizList.size() + " rows");
 		Random r = new Random();
 
-		// correct_answer=r.nextInt(4);
+		ArrayList<Integer> opts = new ArrayList<Integer>();
+		for (int id : btnDrawableIds) {
+			opts.add(id);
+		}
+		int[] btnBgIds = new int[5];
+		for (int i = 0; i < 5; i++) {
+			int t = r.nextInt(opts.size());
+			btnBgIds[i] = opts.get(t);
+			opts.remove(t);
+		}
 
 		int temp;
 		boolean flag = true;
@@ -355,15 +352,28 @@ public class Quiz extends Activity {
 
 		ContentValues a_quiz = quizList.get(quizIndex);
 
-		quiz_Title.setText(getString(R.string.quiz_title,
-				a_quiz.getAsInteger(Database.ColName_id),
-				a_quiz.getAsString(Database.ColName_EDITOR)));
+		Integer quizId = a_quiz.getAsInteger(Database.ColName_id);
+		String editor = a_quiz.getAsString(Database.ColName_EDITOR);
+		if (quizId != null && editor != null) {
+			quiz_Title.setText(getString(R.string.quiz_title, quizId, editor));
+		}
 
-		quiz_Question.setText(getString(R.string.quiz_question,
-				quizIndex + 1,
-				quizList.size(),
-				a_quiz.getAsString(Database.ColName_QUESTION)));
-		quiz_Question.setBackgroundResource(btnDrawableIds[r.nextInt(btnDrawableIds.length)]);
+		switch (gameMode) {
+		case Chooser.GAMEMODE_NORMAL:
+			quiz_Question.setText(getString(R.string.quiz_question,
+					counter,
+					quizList.size(),
+					a_quiz.getAsString(Database.ColName_QUESTION)));
+			break;
+
+		case Chooser.GAMEMODE_CHALLENGE:
+			quiz_Question.setText(getString(R.string.quiz_question_challenge,
+					counter,
+					a_quiz.getAsString(Database.ColName_QUESTION)));
+			break;
+		}
+
+		quiz_Question.setBackgroundResource(btnBgIds[4]);
 		int[] answer_index = new int[4];
 		for (int i = 0; i < 4; i++) {
 			flag = false;
@@ -382,7 +392,7 @@ public class Quiz extends Activity {
 			}
 			answer_index[i] = temp;
 			Buttons[i].setText(a_quiz.getAsString(ColName[temp]));
-			Buttons[i].setBackgroundResource(btnDrawableIds[r.nextInt(btnDrawableIds.length)]);
+			Buttons[i].setBackgroundResource(btnBgIds[i]);
 			// Log.d(TAG,"answer_index["+i+"] = "+answer_index[i]);
 		}
 
@@ -396,29 +406,33 @@ public class Quiz extends Activity {
 	void check(int answer) {
 		Log.d(TAG, "answer = " + answer);
 		quizIndex++;
+		counter++;
+		if (gameMode == Chooser.GAMEMODE_CHALLENGE) {
+			if (quizIndex == quizList.size() - 2) {
+				new Thread() {
+					public void run() {
+						quizListCache = db.QuizQuery(groups);
+					};
+				}.start();
+			} else if (quizIndex == quizList.size()) {
+				quizList = quizListCache;
+				quizIndex = 0;
+			}
+		}
+
 		if (answer == correct_answer) {
 			Right.showAtLocation(findViewById(R.id.quiz_body),
 					Gravity.CENTER,
 					0,
 					0);
 
-			new Handler().postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					Right.dismiss();
-					rightAnim.reset();
-					if (quizIndex < quizList.size()) {
-						setQuiz();
-					} else {
-						summary();
-					}
-				}
-			}, rightAnim.getDuration());
-
+			handler.postDelayed(postCheckRunnable, rightAnim.getDuration());
 			rightAnim.startNow();
+
 			if (isVibratorOn) {
 				vibrator.vibrate(v_right, -1);
 			}
+
 			MainMenu.se.play(MainMenu.se.sound_right);
 			right_count++;
 			Log.d(TAG, "Right");
@@ -427,18 +441,7 @@ public class Quiz extends Activity {
 					Gravity.CENTER,
 					0,
 					0);
-			new Handler().postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					Wrong.dismiss();
-					wrongAnim.reset();
-					if (quizIndex < quizList.size()) {
-						setQuiz();
-					} else {
-						summary();
-					}
-				}
-			}, wrongAnim.getDuration());
+			handler.postDelayed(postCheckRunnable, wrongAnim.getDuration());
 			wrongAnim.startNow();
 			if (isVibratorOn) {
 				vibrator.vibrate(v_wrong, -1);
@@ -449,6 +452,28 @@ public class Quiz extends Activity {
 
 		}
 	}
+
+	Runnable postCheckRunnable = new Runnable() {
+		public void run() {
+			if (Right.isShowing()) {
+				Right.dismiss();
+				rightAnim.reset();
+			}
+			if (Wrong.isShowing()) {
+				Wrong.dismiss();
+				wrongAnim.reset();
+				if (gameMode == Chooser.GAMEMODE_CHALLENGE) {
+					summary();
+					return;
+				}
+			}
+			if (quizIndex < quizList.size()) {
+				setQuiz();
+			} else {
+				summary();
+			}
+		}
+	};
 
 	/**
 	 * 答题结束统计
@@ -574,6 +599,7 @@ public class Quiz extends Activity {
 		intent.putExtra("right", right_count);
 		intent.putExtra("wrong", wrong_count);
 		intent.putExtra("time", time_count);
+		intent.putExtra(Chooser.KeyName_mode, gameMode);
 		setResult(RESULT_OK, intent);
 		dialog.dismiss();
 		finish();

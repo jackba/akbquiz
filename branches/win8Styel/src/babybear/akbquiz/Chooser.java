@@ -11,21 +11,29 @@ import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.RatingBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.ToggleButton;
 
 public class Chooser extends Activity {
 
 	private static final String PreferenceName_Quiz = "quiz";
-	private static final String KeyName_difficulty = "difficulty";
 
-	private static boolean AKB48IsChoosed, SKE48IsChoosed, NMB48IsChoosed,
-			HKT48IsChoosed, NGZK46IsChoosed, SDN48IsChoosed, JKT48IsChoosed,
-			SNH48IsChoosed;
-	private static int difficulty = 1;
-	private static int MODE;
+	public static final String KeyName_difficulty = "difficulty";
+	public static final String KeyName_mode = "gamemode";
+	public static final String KeyName_groups = "groups";
+
+	public static final int GAMEMODE_NORMAL = 0;
+	public static final int GAMEMODE_CHALLENGE = 1;
+
+
+	private static boolean[] GroupIsChoosed = new boolean[Database.GroupOrder_LIMIT];
+//	private static int difficulty = 1;
 
 	private boolean isChanged = false;
+	private int gameMode = GAMEMODE_NORMAL;
+
 	@Override
 	public void onCreate(Bundle InstanceState) {
 		super.onCreate(InstanceState);
@@ -35,6 +43,7 @@ public class Chooser extends Activity {
 		initWidget();
 
 	}
+
 	/**
 	 * 拉取数据
 	 */
@@ -43,85 +52,94 @@ public class Chooser extends Activity {
 		SharedPreferences sp_quiz = getSharedPreferences(PreferenceName_Quiz,
 				Context.MODE_PRIVATE);
 
-		difficulty = sp_quiz.getInt(KeyName_difficulty, 1);
-		AKB48IsChoosed = sp_quiz.getBoolean(Database.GroupName_AKB48, false);
-		SKE48IsChoosed = sp_quiz.getBoolean(Database.GroupName_SKE48, false);
-		NMB48IsChoosed = sp_quiz.getBoolean(Database.GroupName_NMB48, false);
-		HKT48IsChoosed = sp_quiz.getBoolean(Database.GroupName_HKT48, false);
-		NGZK46IsChoosed = sp_quiz.getBoolean(Database.GroupName_NGZK46, false);
-		SDN48IsChoosed = sp_quiz.getBoolean(Database.GroupName_SDN48, false);
-		JKT48IsChoosed = sp_quiz.getBoolean(Database.GroupName_JKT48, false);
-		SNH48IsChoosed = sp_quiz.getBoolean(Database.GroupName_SNH48, false);
-
-		MODE = this.getIntent().getIntExtra(MainMenu.KEY_PLAYMODE,
-				MainMenu.REQUEST_START_NORMAL);
-
+//		difficulty = sp_quiz.getInt(KeyName_difficulty, 1);
+		for (int i = 0; i < GroupIsChoosed.length; i++) {
+			GroupIsChoosed[i] = sp_quiz.getBoolean(Database.GroupNames[i],
+					false);
+		}
+		gameMode = sp_quiz.getInt(KeyName_mode, GAMEMODE_NORMAL);
 	}
-	
+
 	/**
 	 * 初始化界面
 	 */
 	private void initWidget() {
+		ToggleButton[] groupTButton = new ToggleButton[Database.GroupOrder_LIMIT];
+		groupTButton[Database.GroupOrder_AKB48] = (ToggleButton) findViewById(R.id.akb_toggle);
+		groupTButton[Database.GroupOrder_SKE48] = (ToggleButton) findViewById(R.id.ske_toggle);
+		groupTButton[Database.GroupOrder_NMB48] = (ToggleButton) findViewById(R.id.nmb_toggle);
+		groupTButton[Database.GroupOrder_HKT48] = (ToggleButton) findViewById(R.id.hkt_toggle);
+		groupTButton[Database.GroupOrder_NGZK46] = (ToggleButton) findViewById(R.id.jkt_toggle);
+		groupTButton[Database.GroupOrder_JKT48] = (ToggleButton) findViewById(R.id.ngzk_toggle);
+		groupTButton[Database.GroupOrder_SNH48] = (ToggleButton) findViewById(R.id.snh_toggle);
 
-		ToggleButton akb = (ToggleButton) findViewById(R.id.akb_toggle);
-		akb.setOnClickListener(l);
-		akb.setChecked(AKB48IsChoosed);
+		for (int i = 0; i < groupTButton.length; i++) {
+			ToggleButton toggleButton = groupTButton[i];
+			if (toggleButton == null) {
+				continue;
+			}
+			toggleButton.setOnClickListener(l);
+			toggleButton.setChecked(GroupIsChoosed[i]);
 
-		ToggleButton ske = (ToggleButton) findViewById(R.id.ske_toggle);
-		ske.setOnClickListener(l);
-		ske.setChecked(SKE48IsChoosed);
+		}
 
-		ToggleButton nmb = (ToggleButton) findViewById(R.id.nmb_toggle);
-		nmb.setOnClickListener(l);
-		nmb.setChecked(NMB48IsChoosed);
+//		RatingBar diff = (RatingBar) findViewById(R.id.difficulty);
+//		diff.setRating(difficulty / 2.0f);
+//		diff.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+//
+//			@Override
+//			public void onRatingChanged(RatingBar arg0,
+//					float rating,
+//					boolean fromUser) {
+//				if (!fromUser) {
+//					return;
+//				}
+//				difficulty = (int) (rating * 2);
+//				isChanged = true;
+//
+//			}
+//
+//		});
 
-		ToggleButton hkt = (ToggleButton) findViewById(R.id.hkt_toggle);
-		hkt.setOnClickListener(l);
-		hkt.setChecked(HKT48IsChoosed);
+		
+		switch (gameMode) {
+		case GAMEMODE_NORMAL:
+			((RadioButton)findViewById(R.id.gamemode_normal)).setChecked(true);
+			((RadioButton)findViewById(R.id.gamemode_challenge)).setChecked(false);
+			break;
 
-		ToggleButton ngzk = (ToggleButton) findViewById(R.id.ngzk_toggle);
-		ngzk.setOnClickListener(l);
-		ngzk.setChecked(NGZK46IsChoosed);
-
-		// ToggleButton sdn = (ToggleButton) findViewById(R.id.sdn_toggle);
-		// sdn.setOnClickListener(l);
-		// setView(sdn,SDN48IsChoosed);
-		//
-		ToggleButton jkt = (ToggleButton) findViewById(R.id.jkt_toggle);
-		jkt.setOnClickListener(l);
-		jkt.setChecked(JKT48IsChoosed);
-
-		ToggleButton snh = (ToggleButton) findViewById(R.id.snh_toggle);
-		snh.setOnClickListener(l);
-		snh.setChecked(SNH48IsChoosed);
-
-		RatingBar diff = (RatingBar) findViewById(R.id.difficulty);
-		diff.setRating(difficulty / 2.0f);
-		diff.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+		case GAMEMODE_CHALLENGE:
+			((RadioButton)findViewById(R.id.gamemode_challenge)).setChecked(true);
+			((RadioButton)findViewById(R.id.gamemode_normal)).setChecked(false);
+			break;
+		}
+		
+		RadioGroup gamemodeGroup = (RadioGroup) findViewById(R.id.gamemode);
+		gamemodeGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
-			public void onRatingChanged(RatingBar arg0, float rating,
-					boolean fromUser) {
-				if (!fromUser) {
-					return;
-				}
-				difficulty = (int) (rating * 2);
-				isChanged = true;
+			public void onCheckedChanged(RadioGroup group, int checkedId) {
+				switch (checkedId) {
+				case R.id.gamemode_challenge:
+					gameMode = GAMEMODE_CHALLENGE;
+					break;
 
+				case R.id.gamemode_normal:
+					gameMode = GAMEMODE_NORMAL;
+					break;
+				}
 			}
 
 		});
 
 		findViewById(R.id.game_start).setOnClickListener(l);
-		
-		SharedPreferences sp_cfg = getSharedPreferences("config", Context.MODE_PRIVATE);
+
+		SharedPreferences sp_cfg = getSharedPreferences("config",
+				Context.MODE_PRIVATE);
 		if (sp_cfg.getBoolean(Database.KEY_use_custom_background, false)) {
-			findViewById(R.id.chooser_body).setBackgroundDrawable(Drawable
-					.createFromPath(Environment
-							.getExternalStorageDirectory().getPath()
-							+ "/Android/data/"
-							+ getPackageName()
-							+ "/custom_bg.png"));
+			findViewById(R.id.chooser_body).setBackgroundDrawable(Drawable.createFromPath(Environment.getExternalStorageDirectory()
+					.getPath()
+					+ "/Android/data/" + getPackageName() + "/custom_bg.png"));
 		}
 	}
 
@@ -131,21 +149,15 @@ public class Chooser extends Activity {
 	private void save() {
 		Editor e_quiz = getSharedPreferences(PreferenceName_Quiz,
 				Context.MODE_PRIVATE).edit();
-		e_quiz.putBoolean(Database.GroupName_AKB48, AKB48IsChoosed);
-		e_quiz.putBoolean(Database.GroupName_SKE48, SKE48IsChoosed);
-		e_quiz.putBoolean(Database.GroupName_NMB48, NMB48IsChoosed);
-		e_quiz.putBoolean(Database.GroupName_HKT48, HKT48IsChoosed);
-		e_quiz.putBoolean(Database.GroupName_NGZK46, NGZK46IsChoosed);
-		e_quiz.putBoolean(Database.GroupName_SDN48, SDN48IsChoosed);
-		e_quiz.putBoolean(Database.GroupName_JKT48, JKT48IsChoosed);
-		e_quiz.putBoolean(Database.GroupName_SNH48, SNH48IsChoosed);
-
-		e_quiz.putInt(KeyName_difficulty, difficulty);
+		for (int i = 0; i < GroupIsChoosed.length; i++) {
+			e_quiz.putBoolean(Database.GroupNames[i], GroupIsChoosed[i]);
+		}
+		e_quiz.putInt(KeyName_mode, gameMode);
+//		e_quiz.putInt(KeyName_difficulty, difficulty);
 
 		e_quiz.commit();
 	}
 
-	
 	/**
 	 * 本界面所有元素的OnClickListener
 	 */
@@ -155,22 +167,22 @@ public class Chooser extends Activity {
 		public void onClick(View v) {
 			switch (v.getId()) {
 			case R.id.akb_toggle:
-				AKB48IsChoosed = ((ToggleButton)v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_AKB48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.ske_toggle:
-				SKE48IsChoosed = ((ToggleButton)v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.nmb_toggle:
-				NMB48IsChoosed = ((ToggleButton)v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.hkt_toggle:
-				HKT48IsChoosed = ((ToggleButton)v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
@@ -181,17 +193,17 @@ public class Chooser extends Activity {
 			// break;
 
 			case R.id.ngzk_toggle:
-				NGZK46IsChoosed = ((ToggleButton)v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.jkt_toggle:
-				JKT48IsChoosed = ((ToggleButton)v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.snh_toggle:
-				SNH48IsChoosed = ((ToggleButton)v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
@@ -199,22 +211,14 @@ public class Chooser extends Activity {
 				if (isChanged) {
 					save();
 				}
-				
+
 				Intent intent = new Intent(Chooser.this, Quiz.class);
-				intent.putExtra(Database.GroupName_AKB48, AKB48IsChoosed);
-				intent.putExtra(Database.GroupName_SKE48, SKE48IsChoosed);
-				intent.putExtra(Database.GroupName_NMB48, NMB48IsChoosed);
-				intent.putExtra(Database.GroupName_HKT48, HKT48IsChoosed);
-				intent.putExtra(Database.GroupName_NGZK46, NGZK46IsChoosed);
-				intent.putExtra(Database.GroupName_SDN48, SDN48IsChoosed);
-				intent.putExtra(Database.GroupName_JKT48, JKT48IsChoosed);
-				intent.putExtra(Database.GroupName_SNH48, SNH48IsChoosed);
 
-				intent.putExtra(KeyName_difficulty, difficulty);
+				intent.putExtra(KeyName_groups, GroupIsChoosed);
+//				intent.putExtra(KeyName_difficulty, difficulty);
+				intent.putExtra(KeyName_mode, gameMode);
 
-				intent.putExtra(MainMenu.KEY_PLAYMODE, MODE);
-
-				startActivityForResult(intent, MODE);
+				startActivityForResult(intent, gameMode);
 
 				break;
 			}
@@ -223,7 +227,8 @@ public class Chooser extends Activity {
 	};
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	protected void
+			onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == Activity.RESULT_OK) {
 			Intent result = new Intent(data);
 			setResult(RESULT_OK, result);
@@ -243,7 +248,7 @@ public class Chooser extends Activity {
 
 		return super.onKeyDown(keyCode, e);
 	}
-	
+
 	@Override
 	protected void onRestart() {
 		super.onRestart();
