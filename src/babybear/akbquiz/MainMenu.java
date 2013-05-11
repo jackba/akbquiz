@@ -1,10 +1,7 @@
 package babybear.akbquiz;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -21,7 +18,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
@@ -52,12 +48,10 @@ import com.weibo.sdk.android.net.RequestListener;
 import com.weibo.sdk.android.sso.SsoHandler;
 import com.weibo.sdk.android.util.Utility;
 
-
 public class MainMenu extends Activity {
 
-	public static final int REQUEST_CONFIG = 0, REQUEST_START_NORMAL = 1,
-			REQUEST_START_CHALLENGE = 2, REQUEST_AUTH_WEIBO = 100;
-	public static final String KEY_PLAYMODE = "playmode";
+	public static final int REQUEST_CONFIG = 0, REQUEST_START = 1,
+			REQUEST_AUTH_WEIBO = 100;
 
 	private static final String WEIBO_KEY = "3909609063";
 	private static final String SINA_URL = "http://www.sina.com";
@@ -77,6 +71,11 @@ public class MainMenu extends Activity {
 	static ArrayAdapter<ContentValues> userListAdapter = null;
 	static ViewFlipper menu_flipper = null;
 
+	
+
+	private MarqueeTextView notice =null;
+	private ArrayList<String> noticeList = null;
+
 	int config_vol_bg, config_vol_sound;
 	boolean config_sw_bg, config_sw_sound, config_sw_vir;
 
@@ -87,20 +86,6 @@ public class MainMenu extends Activity {
 	private SharedPreferences sp_cfg;
 
 	private Handler handler = new Handler();
-
-	private void setCurrent(int currentUserId) {
-		db.setCurrentUser(currentUserId);
-		for (int i = 0; i < userList.size(); i++) {
-			if (userList.get(i).getAsInteger(Database.ColName_id) == currentUserId) {
-				currentUserInList = i;
-			}
-		}
-
-		username = userList.get(currentUserInList)
-				.getAsString(Database.ColName_username);
-		// ((TextView) findViewById(R.id.username)).setText(username);
-
-	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -138,9 +123,7 @@ public class MainMenu extends Activity {
 				switch (v.getId()) {
 				case R.id.start:
 					Intent intent = new Intent(MainMenu.this, Chooser.class);
-					intent.putExtra(KEY_PLAYMODE, REQUEST_START_NORMAL);
-					startActivityForResult(intent,
-							MainMenu.REQUEST_START_NORMAL);
+					startActivityForResult(intent, MainMenu.REQUEST_START);
 					break;
 				case R.id.record:
 					refreshRecord();
@@ -164,12 +147,12 @@ public class MainMenu extends Activity {
 			}
 		};
 
-		((Button) findViewById(R.id.start)).setOnClickListener(l);
-		((Button) findViewById(R.id.record)).setOnClickListener(l);
-		((Button) findViewById(R.id.users)).setOnClickListener(l);
-		((Button) findViewById(R.id.config)).setOnClickListener(l);
-		((Button) findViewById(R.id.create_user)).setOnClickListener(l);
-		((Button) findViewById(R.id.clear)).setOnClickListener(l);
+		findViewById(R.id.start).setOnClickListener(l);
+		findViewById(R.id.record).setOnClickListener(l);
+		findViewById(R.id.users).setOnClickListener(l);
+		findViewById(R.id.config).setOnClickListener(l);
+		findViewById(R.id.create_user).setOnClickListener(l);
+		findViewById(R.id.clear).setOnClickListener(l);
 
 		Intent intentBgMusic = new Intent(this, BgMusic.class);
 
@@ -188,6 +171,22 @@ public class MainMenu extends Activity {
 		}
 		startService(intentBgMusic);
 
+		notice = (MarqueeTextView) findViewById(R.id.notice);
+		new Thread() {
+			public void run() {
+				noticeList = db.getNotice();
+				if (noticeList == null ||noticeList.size()==0||noticeList.isEmpty()) {
+					return;
+				}
+				Log.d("", "we got "+noticeList.size()+" notices from database");
+				handler.post(new Runnable() {
+					@Override
+					public void run() {
+						notice.setTextListAndStart(noticeList);
+					}
+				});
+			};
+		}.start();
 	}
 
 	@Override
@@ -201,17 +200,22 @@ public class MainMenu extends Activity {
 
 	@Override
 	protected void onStop() {
-		super.onStop();
-
 		if (userCreator != null) {
 			if (userCreator.isShowing()) {
 				userCreator.dismiss();
 			}
 		}
 
+		super.onStop();
 	}
-
-	public void onDestory() {
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+	}
+	
+	@Override
+	protected void onDestroy() {
 		super.onDestroy();
 		se.release();
 		Intent intentBgMusic = new Intent(this, BgMusic.class);
@@ -227,7 +231,7 @@ public class MainMenu extends Activity {
 		case REQUEST_CONFIG:
 			setBackground();
 			break;
-		case REQUEST_START_NORMAL:
+		case REQUEST_START:
 			if (resultCode == Activity.RESULT_OK) {
 				ContentValues currUser = userList.get(currentUserInList);
 				ContentValues userdata = new ContentValues();
@@ -270,6 +274,9 @@ public class MainMenu extends Activity {
 						case Dialog.BUTTON_NEGATIVE:
 							break;
 						case Dialog.BUTTON_POSITIVE:
+							Editor editor = sp_cfg.edit();
+							editor.putBoolean(Database.KEY_normal_exit, true);
+							editor.commit();
 							Intent intentBgMusic = new Intent(MainMenu.this,
 									BgMusic.class);
 							stopService(intentBgMusic);
@@ -298,6 +305,19 @@ public class MainMenu extends Activity {
 
 		return super.onKeyDown(keyCode, event);
 
+	}
+
+	private void setCurrent(int currentUserId) {
+		db.setCurrentUser(currentUserId);
+		for (int i = 0; i < userList.size(); i++) {
+			if (userList.get(i).getAsInteger(Database.ColName_id) == currentUserId) {
+				currentUserInList = i;
+			}
+		}
+
+		username = userList.get(currentUserInList)
+				.getAsString(Database.ColName_username);
+		// ((TextView) findViewById(R.id.username)).setText(username);
 	}
 
 	/**
@@ -512,9 +532,7 @@ public class MainMenu extends Activity {
 			}
 
 			ContentValues values = getItem(position);
-
-			// if((TextView) v.findViewById(R.id.username) == null)Log.d("123",
-			// "v.findViewById(R.id.username) == null");
+			
 			((TextView) v.findViewById(R.id.username)).setText(values.getAsString(Database.ColName_username));
 			if (values.getAsBoolean("isChoosed")) {
 				v.setBackgroundColor(0xffa0a0a0);
@@ -620,7 +638,6 @@ public class MainMenu extends Activity {
 		}
 
 	};
-
 
 	/**
 	 * 新浪微博认证的回调对象
@@ -745,8 +762,7 @@ public class MainMenu extends Activity {
 		public void onCancel() {
 			Toast.makeText(getApplicationContext(),
 					R.string.weibo_err_cancel,
-					Toast.LENGTH_LONG)
-					.show();
+					Toast.LENGTH_LONG).show();
 		}
 
 		@Override

@@ -8,7 +8,7 @@
         \t\t本游戏（应用）中除开上述部分以外的程序代码遵循GNU Lesser General Public License(GNU LGPL, GNU 宽通用公共许可证)标准。\n\n
         \t具体内容见安装包中附带的英文协议副本或参考中文翻译版本，或者访问:\n
         \t\t http://www.gnu.org/licenses/lgpl.html \n  查看GNU LGPL英文原版\n\n
-        \t\t本游戏（应用）中使用的图片文件遵循CC-NC协议。\n\n
+        \t\t本游戏（应用）中使用的原创图片文件遵循CC-NC协议。\n\n
         \t\tAKB48 SKE48 NMB48 HKT48 SND48 JKT48 SNH48 乃木板46 等都是大型偶像团体的名称，名称及其商标归各自运营公司所有。\n\n
         \t\t本游戏（应用）中使用到的声音文件是从网络收集到的，可供开源软件使用的。\n\n
         \t\t本游戏（应用）中使用到的题目都是网上收集，作者本人并不为之负任何责任。\n\n
@@ -79,6 +79,7 @@
     <string name="menu_username_duplicate">已存在相同的用户</string>
     <string name="menu_delete_confirm">确认删除该用户?</string>
     <string name="menu_delete_info">确定要删除用户“%1$s”吗？</string>
+   
 
     
     <string name="summary_title">统计信息</string>
@@ -114,13 +115,17 @@
 	<string name="quiz_noquiz">十分抱歉，题库中没有您要的题目</string>
 	<string name="quiz_title">ID. %1$d  出题者: %2$s</string>
 	<string name="quiz_question">第%1$d/%2$d题\n  %3$s"</string>
+	<string name="quiz_question_challenge">挑战模式第%1$d题\n  %2$s"</string>
+	<string name="gamemode_normal">一般模式</string>
+	<string name="gamemode_challenge">挑战模式</string>
 	
 	<string name="database_datefmt">yyyy年 MM月 dd日</string>
 	<string name="database_building">建立用户数据库</string>
 	<string name="database_user_created">用户:\'%1$s\'已建立</string>
-	<string name="database_user_removed">用户:\'%1$s\'已删除</string>
-	<string name="database_t_q_birthday">%1$s的生日是哪一天?</string>
-	<string name="database_t_q_comefrom">%1$s是来自哪里的?</string>
+	<string name="database_user_removed">用户:\'%1$s\'已删除</string> 
+	<string name="database_t_notice_birthday">今天是 %1$s %2$s %3$s 的生日</string>
+	<string name="database_t_q_birthday">%2$s %1$s的生日是哪一天?</string>
+	<string name="database_t_q_comefrom">%2$s %1$s是来自哪里的?</string>
 	<string name="database_t_q_team">%1$s是哪个小队的?</string>
 	<string name="database_t_tips_birthday">你知道吗\n %1$s的生日是%2$s</string>
 	<string name="database_t_tips_comefrom">你知道吗\n %1$s来自%2$s</string>

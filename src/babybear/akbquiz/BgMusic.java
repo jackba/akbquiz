@@ -163,9 +163,6 @@ public class BgMusic extends Service {
 	@Override
 	public void onCreate() {
 		Log.d(TAG, "++onCreate++");
-		// defaultMusicNum=Puzzle.BGMs.length();
-		// totalMusicNum=Puzzle.user.CUSTOM_MUSIC_NUM + defaultMusicNum;
-
 		super.onCreate();
 		bgHandler = new BGHandler(this);
 		isRunning = true;
@@ -249,7 +246,7 @@ public class BgMusic extends Service {
 			}
 		}.start();
 
-		return START_STICKY;
+		return START_NOT_STICKY ;
 	}
 
 	@Override
@@ -283,8 +280,8 @@ public class BgMusic extends Service {
 		@Override
 		public void handleMessage(Message msg) {
 			BgMusic theService = mService.get();
-			Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : "
-					+ msg.what);
+//			Log.d(BgMusic.TAG, "msg.arg1 : " + msg.arg1 + " msg.what : "
+//					+ msg.what);
 			switch (msg.what) {
 			case PAUSE:
 				if (theService.player != null) {

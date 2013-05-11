@@ -47,6 +47,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -329,18 +330,31 @@ public class ConfigActivity extends Activity {
 		vibration_toggle.setOnClickListener(clickListener);
 		config_playlist.setOnClickListener(clickListener);
 
-		((Button) findViewById(R.id.config_back)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_musiclist_back)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_playlist_back)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_update)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_quiz_submit)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_ranking)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_loopmode)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_change_bgimage)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.config_restore_bgimage)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.call_calendar_editor)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.who_are_we)).setOnClickListener(clickListener);
-		((Button) findViewById(R.id.licence)).setOnClickListener(clickListener);
+		findViewById(R.id.config_back).setOnClickListener(clickListener);
+		findViewById(R.id.config_musiclist_back).setOnClickListener(clickListener);
+		findViewById(R.id.config_playlist_back).setOnClickListener(clickListener);
+		findViewById(R.id.config_update).setOnClickListener(clickListener);
+		findViewById(R.id.config_quiz_submit).setOnClickListener(clickListener);
+		findViewById(R.id.config_ranking).setOnClickListener(clickListener);
+		findViewById(R.id.config_loopmode).setOnClickListener(clickListener);
+		findViewById(R.id.config_change_bgimage).setOnClickListener(clickListener);
+		findViewById(R.id.config_restore_bgimage).setOnClickListener(clickListener);
+		findViewById(R.id.call_calendar_editor).setOnClickListener(clickListener);
+		findViewById(R.id.who_are_we).setOnClickListener(clickListener);
+		findViewById(R.id.licence).setOnClickListener(clickListener);
+		
+		findViewById(R.id.who_are_we).setOnLongClickListener(new OnLongClickListener() {
+			
+			@Override
+			public boolean onLongClick(View v) {
+				switch (v.getId()) {
+				case R.id.who_are_we:
+					Welcome2.saveReport(ConfigActivity.this);
+					break;
+				}
+				return false;
+			}
+		});
 
 		OnSeekBarChangeListener l_seekbar = new OnSeekBarChangeListener() {
 

@@ -30,4 +30,22 @@
         <item name="android:thumb">@drawable/progress_thumb_win8</item>
         <item name="android:thumbOffset">0dp</item>
     </style>
+    <style name="win8_radioGroup">
+        <item name="android:orientation">horizontal</item>
+    </style>
+    <style name="win8_radioGroup_v">
+        <item name="android:orientation">vertical</item>
+    </style>
+    <style name="win8_radioButton">
+        <item name="android:textSize">18sp</item>
+        <item name="android:background">@drawable/radio_win8</item>
+        <item name="android:button">@null</item>
+        <item name="android:padding">10dp</item>
+   </style>
+   <style name="win8_radioButton_v">
+        <item name="android:textSize">18sp</item>
+        <item name="android:background">@drawable/radio_win8_v</item>
+        <item name="android:button">@null</item>
+        <item name="android:padding">10dp</item>
+   </style>
 </resources>

@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Field;
+import java.util.Date;
+import java.util.Properties;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,12 +23,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -48,13 +53,29 @@ public class Welcome2 extends Activity {
 
 	public static final int DATA_VER = 2;
 
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.fanhuashe1);
+		SharedPreferences sp_cfg = getSharedPreferences("config",
+				Context.MODE_PRIVATE);
+		if (!sp_cfg.getBoolean(Database.KEY_normal_exit, false)) {
+			new Thread(){
+				@Override
+				public void run() {
+					saveReport(Welcome2.this);
+				}
+			}.start();
+		}
+
+		Editor editor = sp_cfg.edit();
+		editor.putBoolean(Database.KEY_normal_exit, false);
+		editor.commit();
 		envFilePath = Environment.getExternalStorageDirectory().getPath()
 				+ "/Android/data/" + getPackageName() + "/env.json";
+
 		verCheck();
 		logo();
 	}
@@ -92,6 +113,90 @@ public class Welcome2 extends Activity {
 	// }
 
 	/**
+	 * 输出Logcat到文件
+	 */
+	public static void saveReport(Context ctx) {
+		Log.d("", "正在输出日志文件");
+
+		try {
+			Properties mDeviceCrashInfo = collectCrashDeviceInfo(ctx);
+			Process process;
+			process = Runtime.getRuntime().exec("logcat -d | grep "+android.os.Process.myPid());
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			
+
+			long timestamp = System.currentTimeMillis();
+			File file = new File(Environment.getExternalStorageDirectory()
+					.getPath()
+					+ "/Android/data/"
+					+ ctx.getPackageName()
+					+ "/crash-" + timestamp + ".crashreport");
+			FileOutputStream os = new FileOutputStream(file);
+			mDeviceCrashInfo.store(os, (new Date()).toString());
+			
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+			
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				bw.write(line);
+				bw.newLine();
+			}
+			bw.flush();
+			bw.close();
+			
+			//ctx..post();
+			//Toast.makeText(ctx, "输出日志文件为:"+file.getPath(), Toast.LENGTH_SHORT).show();
+			
+			Log.d("", "输出日志文件为:"+file.getPath());
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * 获取设备的信息
+	 * 
+	 * @param ctx
+	 * @return
+	 */
+	public static Properties collectCrashDeviceInfo(Context ctx) {
+		Properties mDeviceCrashInfo = new Properties();
+		final String VERSION_NAME = "versionName";
+		final String VERSION_CODE = "versionCode";
+		try {
+			PackageManager pm = ctx.getPackageManager();
+			PackageInfo pi = pm.getPackageInfo(ctx.getPackageName(),
+					PackageManager.GET_ACTIVITIES);
+			if (pi != null) {
+				mDeviceCrashInfo.put(VERSION_NAME,
+						pi.versionName == null ? "not set" : pi.versionName);
+				mDeviceCrashInfo.put(VERSION_CODE, Integer.toString(pi.versionCode));
+			}
+		}
+		catch (NameNotFoundException e) {
+			Log.e("", "Error while collect package info", e);
+		}
+		// 使用反射来收集设备信息.在Build类中包含各种设备信息,
+		// 例如: 系统版本号,设备生产商 等帮助调试程序的有用信息
+		Field[] fields = Build.class.getDeclaredFields();
+		for (Field field : fields) {
+			try {
+				field.setAccessible(true);
+				mDeviceCrashInfo.put(field.getName(), field.get(null).toString());
+				//Log.d(TAG, field.getName() + " : " + field.get(null));
+			}
+			catch (Exception e) {
+				Log.e("", "Error while collect crash info", e);
+			}
+
+		}
+		return mDeviceCrashInfo;
+
+	}
+
+	/**
 	 * 检查是否是首次运行 数据库版本是否是最新
 	 */
 	private void verCheck() {
@@ -107,7 +212,7 @@ public class Welcome2 extends Activity {
 						JSONObject obj = new JSONObject(jsonString);
 						int dataver = obj.getInt(KEY_DATAVER);
 						if (dataver < Database.quizdb_ver) {
-							refreshEnvFile(envFile);
+							saveEnvFile(envFile);
 							copyDatabase();
 						}
 
@@ -125,7 +230,7 @@ public class Welcome2 extends Activity {
 					;
 				} else {
 					envFile.getParentFile().mkdirs();
-					refreshEnvFile(envFile);
+					saveEnvFile(envFile);
 					copyDatabase();
 					firstRun();
 				}
@@ -156,11 +261,11 @@ public class Welcome2 extends Activity {
 	}
 
 	/**
-	 * 刷新环境配置文件
+	 * 保存环境配置文件
 	 * 
 	 * @param file 环境配置文件
 	 */
-	private void refreshEnvFile(File file) {
+	private void saveEnvFile(File file) {
 
 		PackageInfo info;
 		try {
@@ -213,7 +318,7 @@ public class Welcome2 extends Activity {
 		if (!parent.exists()) {
 			parent.mkdirs();
 		}
-		
+
 		try {
 			InputStream is = am.open("q.db");
 
