@@ -508,11 +508,7 @@ public class Database {
 		}
 
 		if (groups.length == 0) {
-			/*
-			 * /
-			 * return QuizQuery(20);
-			 * //
-			 */
+			return null;
 		}
 
 		// dbh = new DatabaseHelper(context, DBname, null, quizdb_ver);
@@ -556,6 +552,7 @@ public class Database {
 		}
 
 		// 其他问题
+		
 		selection = "`is_show` AND ( ";
 		for (int i = 0; i < groups.length; i++) {
 			if (i > 0) {

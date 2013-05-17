@@ -174,7 +174,7 @@ public class MainMenu extends Activity {
 		notice = (MarqueeTextView) findViewById(R.id.notice);
 		new Thread() {
 			public void run() {
-				noticeList = db.getNotice();
+				noticeList = (new Database(MainMenu.this, Database.DBName_quiz)).getNotice();
 				if (noticeList == null ||noticeList.size()==0||noticeList.isEmpty()) {
 					return;
 				}

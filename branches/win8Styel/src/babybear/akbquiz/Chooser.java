@@ -14,6 +14,7 @@ import android.view.View.OnClickListener;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class Chooser extends Activity {
@@ -27,9 +28,8 @@ public class Chooser extends Activity {
 	public static final int GAMEMODE_NORMAL = 0;
 	public static final int GAMEMODE_CHALLENGE = 1;
 
-
 	private static boolean[] GroupIsChoosed = new boolean[Database.GroupOrder_LIMIT];
-//	private static int difficulty = 1;
+	// private static int difficulty = 1;
 
 	private boolean isChanged = false;
 	private int gameMode = GAMEMODE_NORMAL;
@@ -52,7 +52,7 @@ public class Chooser extends Activity {
 		SharedPreferences sp_quiz = getSharedPreferences(PreferenceName_Quiz,
 				Context.MODE_PRIVATE);
 
-//		difficulty = sp_quiz.getInt(KeyName_difficulty, 1);
+		// difficulty = sp_quiz.getInt(KeyName_difficulty, 1);
 		for (int i = 0; i < GroupIsChoosed.length; i++) {
 			GroupIsChoosed[i] = sp_quiz.getBoolean(Database.GroupNames[i],
 					false);
@@ -69,8 +69,8 @@ public class Chooser extends Activity {
 		groupTButton[Database.GroupOrder_SKE48] = (ToggleButton) findViewById(R.id.ske_toggle);
 		groupTButton[Database.GroupOrder_NMB48] = (ToggleButton) findViewById(R.id.nmb_toggle);
 		groupTButton[Database.GroupOrder_HKT48] = (ToggleButton) findViewById(R.id.hkt_toggle);
-		groupTButton[Database.GroupOrder_NGZK46] = (ToggleButton) findViewById(R.id.jkt_toggle);
-		groupTButton[Database.GroupOrder_JKT48] = (ToggleButton) findViewById(R.id.ngzk_toggle);
+		groupTButton[Database.GroupOrder_NGZK46] = (ToggleButton) findViewById(R.id.ngzk_toggle);
+		groupTButton[Database.GroupOrder_JKT48] = (ToggleButton) findViewById(R.id.jkt_toggle);
 		groupTButton[Database.GroupOrder_SNH48] = (ToggleButton) findViewById(R.id.snh_toggle);
 
 		for (int i = 0; i < groupTButton.length; i++) {
@@ -83,37 +83,37 @@ public class Chooser extends Activity {
 
 		}
 
-//		RatingBar diff = (RatingBar) findViewById(R.id.difficulty);
-//		diff.setRating(difficulty / 2.0f);
-//		diff.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-//
-//			@Override
-//			public void onRatingChanged(RatingBar arg0,
-//					float rating,
-//					boolean fromUser) {
-//				if (!fromUser) {
-//					return;
-//				}
-//				difficulty = (int) (rating * 2);
-//				isChanged = true;
-//
-//			}
-//
-//		});
+		// RatingBar diff = (RatingBar) findViewById(R.id.difficulty);
+		// diff.setRating(difficulty / 2.0f);
+		// diff.setOnRatingBarChangeListener(new
+		// RatingBar.OnRatingBarChangeListener() {
+		//
+		// @Override
+		// public void onRatingChanged(RatingBar arg0,
+		// float rating,
+		// boolean fromUser) {
+		// if (!fromUser) {
+		// return;
+		// }
+		// difficulty = (int) (rating * 2);
+		// isChanged = true;
+		//
+		// }
+		//
+		// });
 
-		
 		switch (gameMode) {
 		case GAMEMODE_NORMAL:
-			((RadioButton)findViewById(R.id.gamemode_normal)).setChecked(true);
-			((RadioButton)findViewById(R.id.gamemode_challenge)).setChecked(false);
+			((RadioButton) findViewById(R.id.gamemode_normal)).setChecked(true);
+			((RadioButton) findViewById(R.id.gamemode_challenge)).setChecked(false);
 			break;
 
 		case GAMEMODE_CHALLENGE:
-			((RadioButton)findViewById(R.id.gamemode_challenge)).setChecked(true);
-			((RadioButton)findViewById(R.id.gamemode_normal)).setChecked(false);
+			((RadioButton) findViewById(R.id.gamemode_challenge)).setChecked(true);
+			((RadioButton) findViewById(R.id.gamemode_normal)).setChecked(false);
 			break;
 		}
-		
+
 		RadioGroup gamemodeGroup = (RadioGroup) findViewById(R.id.gamemode);
 		gamemodeGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
@@ -153,7 +153,7 @@ public class Chooser extends Activity {
 			e_quiz.putBoolean(Database.GroupNames[i], GroupIsChoosed[i]);
 		}
 		e_quiz.putInt(KeyName_mode, gameMode);
-//		e_quiz.putInt(KeyName_difficulty, difficulty);
+		// e_quiz.putInt(KeyName_difficulty, difficulty);
 
 		e_quiz.commit();
 	}
@@ -177,12 +177,12 @@ public class Chooser extends Activity {
 				break;
 
 			case R.id.nmb_toggle:
-				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_NMB48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.hkt_toggle:
-				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_HKT48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
@@ -193,17 +193,17 @@ public class Chooser extends Activity {
 			// break;
 
 			case R.id.ngzk_toggle:
-				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_NGZK46] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.jkt_toggle:
-				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_JKT48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
 			case R.id.snh_toggle:
-				GroupIsChoosed[Database.GroupOrder_SKE48] = ((ToggleButton) v).isChecked();
+				GroupIsChoosed[Database.GroupOrder_SNH48] = ((ToggleButton) v).isChecked();
 				isChanged = true;
 				break;
 
@@ -211,14 +211,27 @@ public class Chooser extends Activity {
 				if (isChanged) {
 					save();
 				}
+				boolean flag = false;
+				for (int i = 0; i < GroupIsChoosed.length; i++) {
+					if (GroupIsChoosed[i]) {
+						flag = true;
+						break;
+					}
+				}
 
-				Intent intent = new Intent(Chooser.this, Quiz.class);
+				if (flag) {
+					Intent intent = new Intent(Chooser.this, Quiz.class);
 
-				intent.putExtra(KeyName_groups, GroupIsChoosed);
-//				intent.putExtra(KeyName_difficulty, difficulty);
-				intent.putExtra(KeyName_mode, gameMode);
+					intent.putExtra(KeyName_groups, GroupIsChoosed);
+					// intent.putExtra(KeyName_difficulty, difficulty);
+					intent.putExtra(KeyName_mode, gameMode);
 
-				startActivityForResult(intent, gameMode);
+					startActivityForResult(intent, gameMode);
+				} else {
+					Toast.makeText(Chooser.this,
+							R.string.chooser_err_unchoosed,
+							Toast.LENGTH_LONG).show();
+				}
 
 				break;
 			}

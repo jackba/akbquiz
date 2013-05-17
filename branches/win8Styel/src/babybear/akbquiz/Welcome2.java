@@ -37,7 +37,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 public class Welcome2 extends Activity {
@@ -53,26 +52,17 @@ public class Welcome2 extends Activity {
 
 	public static final int DATA_VER = 2;
 
+	private boolean isSavingEnvFile = false;
+	private boolean isSavingDatabase = false;
+	private boolean isInitializing = false;
+
+	Handler handler = new Handler();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.fanhuashe1);
-		SharedPreferences sp_cfg = getSharedPreferences("config",
-				Context.MODE_PRIVATE);
-		if (!sp_cfg.getBoolean(Database.KEY_normal_exit, false)) {
-			new Thread(){
-				@Override
-				public void run() {
-					saveReport(Welcome2.this);
-				}
-			}.start();
-		}
-
-		Editor editor = sp_cfg.edit();
-		editor.putBoolean(Database.KEY_normal_exit, false);
-		editor.commit();
 		envFilePath = Environment.getExternalStorageDirectory().getPath()
 				+ "/Android/data/" + getPackageName() + "/env.json";
 
@@ -95,23 +85,6 @@ public class Welcome2 extends Activity {
 		return false;
 	}
 
-	// void waring() {
-	// Animation anim = AnimationUtils.loadAnimation(this, R.anim.fade_in_out);
-	// anim.setFillEnabled(true); // 启动Fill保持
-	// anim.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
-	//
-	// findViewById(R.id.full).setAnimation(anim);
-	//
-	// new Handler().postDelayed(new Runnable() {
-	// @Override
-	// public void run() {
-	// logo();
-	// }
-	// }, 3000);
-	//
-	// anim.startNow();
-	// }
-
 	/**
 	 * 输出Logcat到文件
 	 */
@@ -121,9 +94,9 @@ public class Welcome2 extends Activity {
 		try {
 			Properties mDeviceCrashInfo = collectCrashDeviceInfo(ctx);
 			Process process;
-			process = Runtime.getRuntime().exec("logcat -d | grep "+android.os.Process.myPid());
+			process = Runtime.getRuntime().exec("logcat -d | grep "
+					+ android.os.Process.myPid());
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			
 
 			long timestamp = System.currentTimeMillis();
 			File file = new File(Environment.getExternalStorageDirectory()
@@ -133,9 +106,9 @@ public class Welcome2 extends Activity {
 					+ "/crash-" + timestamp + ".crashreport");
 			FileOutputStream os = new FileOutputStream(file);
 			mDeviceCrashInfo.store(os, (new Date()).toString());
-			
+
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-			
+
 			String line;
 			while ((line = bufferedReader.readLine()) != null) {
 				bw.write(line);
@@ -143,11 +116,12 @@ public class Welcome2 extends Activity {
 			}
 			bw.flush();
 			bw.close();
-			
-			//ctx..post();
-			//Toast.makeText(ctx, "输出日志文件为:"+file.getPath(), Toast.LENGTH_SHORT).show();
-			
-			Log.d("", "输出日志文件为:"+file.getPath());
+
+			// ctx..post();
+			// Toast.makeText(ctx, "输出日志文件为:"+file.getPath(),
+			// Toast.LENGTH_SHORT).show();
+
+			Log.d("", "输出日志文件为:" + file.getPath());
 		}
 		catch (IOException e) {
 			e.printStackTrace();
@@ -172,7 +146,8 @@ public class Welcome2 extends Activity {
 			if (pi != null) {
 				mDeviceCrashInfo.put(VERSION_NAME,
 						pi.versionName == null ? "not set" : pi.versionName);
-				mDeviceCrashInfo.put(VERSION_CODE, Integer.toString(pi.versionCode));
+				mDeviceCrashInfo.put(VERSION_CODE,
+						Integer.toString(pi.versionCode));
 			}
 		}
 		catch (NameNotFoundException e) {
@@ -184,8 +159,9 @@ public class Welcome2 extends Activity {
 		for (Field field : fields) {
 			try {
 				field.setAccessible(true);
-				mDeviceCrashInfo.put(field.getName(), field.get(null).toString());
-				//Log.d(TAG, field.getName() + " : " + field.get(null));
+				mDeviceCrashInfo.put(field.getName(), field.get(null)
+						.toString());
+				// Log.d(TAG, field.getName() + " : " + field.get(null));
 			}
 			catch (Exception e) {
 				Log.e("", "Error while collect crash info", e);
@@ -202,9 +178,23 @@ public class Welcome2 extends Activity {
 	private void verCheck() {
 		new Thread() {
 			public void run() {
-
 				File envFile = new File(envFilePath);
 				if (envFile.exists()) {
+					SharedPreferences sp_cfg = getSharedPreferences("config",
+							Context.MODE_PRIVATE);
+					if (!sp_cfg.getBoolean(Database.KEY_normal_exit, false)) {
+						new Thread() {
+							@Override
+							public void run() {
+								saveReport(Welcome2.this);
+							}
+						}.start();
+					}
+
+					Editor editor = sp_cfg.edit();
+					editor.putBoolean(Database.KEY_normal_exit, false);
+					editor.commit();
+					
 					try {
 						BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(envFile)));
 						String jsonString = buffer.readLine();
@@ -226,11 +216,12 @@ public class Welcome2 extends Activity {
 					catch (JSONException e) {
 						e.printStackTrace();
 					}
-
-					;
 				} else {
 					envFile.getParentFile().mkdirs();
 					saveEnvFile(envFile);
+				}
+				if (!(new File(Database.databasePath)).exists()) {
+					Log.d("", "database file not exists");
 					copyDatabase();
 					firstRun();
 				}
@@ -244,6 +235,9 @@ public class Welcome2 extends Activity {
 	 * 首次运行 配置设置文件
 	 */
 	private void firstRun() {
+		Log.d("", "Initializing");
+		isInitializing = true;
+
 		SharedPreferences sp_cfg = getSharedPreferences("config",
 				Context.MODE_PRIVATE);
 		Editor cfg_Editor = sp_cfg.edit();
@@ -258,6 +252,7 @@ public class Welcome2 extends Activity {
 		cfg_Editor.putInt(Database.KEY_tips_quiz, 0);
 
 		cfg_Editor.commit();
+		isInitializing = false;
 	}
 
 	/**
@@ -266,6 +261,8 @@ public class Welcome2 extends Activity {
 	 * @param file 环境配置文件
 	 */
 	private void saveEnvFile(File file) {
+		Log.d("", "SavingEnvFile");
+		isSavingEnvFile = true;
 
 		PackageInfo info;
 		try {
@@ -291,6 +288,8 @@ public class Welcome2 extends Activity {
 			writer.write(obj.toString());
 			writer.flush();
 			writer.close();
+
+			isSavingEnvFile = false;
 		}
 		catch (NameNotFoundException e) {
 			e.printStackTrace();
@@ -309,6 +308,9 @@ public class Welcome2 extends Activity {
 
 	// 复制数据库
 	private void copyDatabase() {
+		Log.d("", "SavingDatabase");
+		isSavingDatabase = true;
+
 		AssetManager am = this.getAssets();
 		File fileout = new File(Database.databasePath);
 		if (fileout.exists()) {
@@ -316,6 +318,7 @@ public class Welcome2 extends Activity {
 		}
 		File parent = fileout.getParentFile();
 		if (!parent.exists()) {
+			Log.d("", parent.getPath() + " is not exist");
 			parent.mkdirs();
 		}
 
@@ -336,6 +339,8 @@ public class Welcome2 extends Activity {
 			os.close();
 			is.close();
 
+			isSavingDatabase = false;
+
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -352,28 +357,28 @@ public class Welcome2 extends Activity {
 	private void logo() {
 		setContentView(R.layout.fanhuashe1);
 
-		ImageView petal = (ImageView) findViewById(R.id.petal);
+		View petal = findViewById(R.id.petal);
 		Animation anim1 = AnimationUtils.loadAnimation(this, R.anim.logo_petal);
 		anim1.setFillEnabled(true); // 启动Fill保持
 		anim1.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
 		petal.setAnimation(anim1);
 		anim1.startNow();
 
-		ImageView text = (ImageView) findViewById(R.id.text);
+		View text = findViewById(R.id.text);
 		Animation anim2 = AnimationUtils.loadAnimation(this, R.anim.logo_text);
 		anim2.setFillEnabled(true); // 启动Fill保持
 		anim2.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
 		text.setAnimation(anim2);
 
 		anim2.startNow();
-		ImageView smalltext = (ImageView) findViewById(R.id.smalltext);
+		View smalltext =findViewById(R.id.smalltext);
 		Animation anim3 = AnimationUtils.loadAnimation(this,
 				R.anim.logo_smalltext);
 		anim3.setFillEnabled(true); // 启动Fill保持
 		anim3.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
 		smalltext.setAnimation(anim3);
 		anim3.startNow();
-		new Handler().postDelayed(new Runnable() {
+		handler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				logo_fadeout();
@@ -389,12 +394,12 @@ public class Welcome2 extends Activity {
 		ViewGroup layout = (ViewGroup) findViewById(R.id.full);
 		Animation anim3 = AnimationUtils.loadAnimation(this,
 				R.anim.wait_fade_out);
-		anim3.setFillEnabled(true); // 启动Fill保持
-		anim3.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
+		//anim3.setFillEnabled(true); // 启动Fill保持
+		//anim3.setFillAfter(true); // 设置动画的最后一帧是保持在View上面
 
 		layout.setAnimation(anim3);
 		anim3.startNow();
-		new Handler().postDelayed(new Runnable() {
+		handler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				pregame();
@@ -407,13 +412,12 @@ public class Welcome2 extends Activity {
 	 */
 	private void pregame() {
 		setContentView(R.layout.activity_welcome);
-		ViewGroup layout = (ViewGroup) findViewById(R.id.full);
+		//ViewGroup layout = (ViewGroup) findViewById(R.id.full);
 
 		Animation anim = AnimationUtils.loadAnimation(this, R.anim.fade_in);
 
-		anim.setFillEnabled(true);
-		anim.setFillAfter(true);
-		layout.setAnimation(anim);
+//		anim.setFillEnabled(true);
+//		anim.setFillAfter(true);
 		anim.startNow();
 
 		Animation anim1 = AnimationUtils.loadAnimation(this, R.anim.twinkling);
@@ -421,11 +425,13 @@ public class Welcome2 extends Activity {
 		clickToStart.setAnimation(anim1);
 		anim1.startNow();
 
-		layout.setOnClickListener(new OnClickListener() {
+		findViewById(R.id.full).setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				twink();
+				if (!isInitializing && !isSavingDatabase && !isSavingEnvFile) {
+					twink();
+				}
 			}
 
 		});
@@ -440,7 +446,7 @@ public class Welcome2 extends Activity {
 
 		findViewById(R.id.click_to_start).setAnimation(anim2);
 
-		new Handler().postDelayed(new Runnable() {
+		handler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				Intent intent = new Intent(Welcome2.this, MainMenu.class);
