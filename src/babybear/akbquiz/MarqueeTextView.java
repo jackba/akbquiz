@@ -95,8 +95,16 @@ public class MarqueeTextView extends TextView {
 					// 更换显示为下一行 END
 
 					currentScrollX = -getWidth(); // 重置滚动坐标
+				}else{
+					MarqueeTextView.this.post(new Runnable() {
+						
+						@Override
+						public void run() {
+							scrollTo(currentScrollX, 0); // 滚动到下一个位置
+						}
+					});
 				}
-				scrollTo(currentScrollX, 0); // 滚动到下一个位置
+				
 			}
 		};
 	};
